@@ -1,0 +1,280 @@
+# XAI-Forge 🔬
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://openjdk.java.net/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2+-green.svg)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://www.postgresql.org/)
+
+> **XAI-Forge** is a comprehensive full-stack platform that demystifies machine learning by providing transparent, human-understandable explanations for every prediction. Built with modern Java and React technologies, it empowers users to build, train, and understand ML models with complete transparency.
+
+## 🌟 Features
+
+- **🔐 Secure Authentication** - JWT-based user management with encrypted passwords
+- **📊 Dataset Management** - Upload, parse, and manage CSV datasets with metadata
+- **🤖 ML Model Training** - Train classification and regression models using Tribuo
+- **🔮 Smart Predictions** - Get real-time predictions with confidence scores
+- **🧠 Explainable AI** - LIME-based feature importance explanations for every prediction
+- **🎨 Modern UI** - Beautiful, responsive React interface with Material-UI
+- **📈 Interactive Visualizations** - Chart.js-powered explanation charts
+- **🔒 Data Security** - User-specific data isolation and secure file handling
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Java 17+** - Backend runtime
+- **Node.js 18+** - Frontend development
+- **PostgreSQL 14+** - Database
+- **Maven 3.8+** - Backend build tool
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Mukaan17/xai-forge.git
+   cd xai-forge
+   ```
+
+2. **Set up the database**
+   ```bash
+   # Create database and user
+   psql -U postgres -f setup-database.sql
+   ```
+
+3. **Configure the backend**
+   ```bash
+   # Update database credentials in backend/src/main/resources/application.properties
+   # Create upload directories
+   mkdir -p uploads/datasets uploads/models
+   ```
+
+4. **Start the backend**
+   ```bash
+   cd backend
+   mvn spring-boot:run
+   ```
+
+5. **Start the frontend**
+   ```bash
+   cd frontend
+   npm install
+   npm start
+   ```
+
+6. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8080
+
+> 📖 **Detailed setup instructions** are available in [docs/SETUP-GUIDE.md](docs/SETUP-GUIDE.md)
+
+## Technology Stack
+
+### Backend
+- **Java 17+**
+- **Spring Boot 3+**
+- **Spring Security** with JWT authentication
+- **Spring Data JPA** for database operations
+- **PostgreSQL** database
+- **Tribuo** (Oracle Labs) for machine learning and XAI
+- **Apache Commons CSV** for CSV parsing
+- **Lombok** for reducing boilerplate code
+
+### Frontend
+- **React 18**
+- **Material-UI (MUI)** for UI components
+- **Chart.js** for data visualizations
+- **Axios** for API calls
+- **React Router** for navigation
+
+### Build Tools
+- **Maven** for backend build management
+- **npm** for frontend dependency management
+
+## Project Structure
+
+```
+xai-app/
+├── pom.xml                 # Parent Maven POM
+├── backend/                # Spring Boot backend
+│   ├── pom.xml
+│   └── src/main/java/com/example/xaiapp/
+│       ├── config/         # Security and web configuration
+│       ├── controller/     # REST controllers
+│       ├── dto/           # Data Transfer Objects
+│       ├── entity/        # JPA entities
+│       ├── repository/    # Data repositories
+│       ├── security/      # JWT and security components
+│       └── service/       # Business logic services
+└── frontend/              # React frontend
+    ├── package.json
+    ├── public/
+    └── src/
+        ├── api/           # API service layer
+        ├── components/    # React components
+        ├── contexts/      # React contexts
+        └── pages/         # Page components
+```
+
+## Setup Instructions
+
+### Prerequisites
+- Java 17 or higher
+- Node.js 16 or higher
+- PostgreSQL 12 or higher
+- Maven 3.6 or higher
+
+### Database Setup
+1. Install PostgreSQL
+2. Create a database named `xai_db`
+3. Create a user `xai_user` with password `xai_password`
+4. Grant all privileges on `xai_db` to `xai_user`
+
+### Backend Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+
+2. Update `src/main/resources/application.properties` with your database credentials if needed
+
+3. Build and run the backend:
+   ```bash
+   mvn clean install
+   mvn spring-boot:run
+   ```
+
+The backend will be available at `http://localhost:8080`
+
+### Frontend Setup
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm start
+   ```
+
+The frontend will be available at `http://localhost:3000`
+
+## Usage
+
+1. **Register/Login**: Create an account or login to access the dashboard
+2. **Upload Dataset**: Upload a CSV file with your data
+3. **Train Model**: Select a dataset, choose target variable and features, then train a model
+4. **Make Predictions**: Input new data and get predictions with explanations
+5. **View Explanations**: See which features influenced the prediction and how
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+
+### Datasets
+- `POST /api/datasets/upload` - Upload CSV dataset
+- `GET /api/datasets` - Get user's datasets
+- `GET /api/datasets/{id}` - Get dataset details
+- `DELETE /api/datasets/{id}` - Delete dataset
+
+### Models
+- `POST /api/models/train` - Train ML model
+- `GET /api/models` - Get user's models
+- `GET /api/models/{id}` - Get model details
+- `POST /api/models/{id}/predict` - Make prediction
+- `POST /api/models/{id}/explain` - Get explanation
+- `DELETE /api/models/{id}` - Delete model
+
+## Machine Learning Features
+
+### Supported Model Types
+- **Classification**: Logistic Regression
+- **Regression**: Linear SGD
+
+### Explainable AI
+- **LIME (Local Interpretable Model-agnostic Explanations)**: Provides feature-level explanations for individual predictions
+- **Feature Importance**: Shows which features contributed most to the prediction
+- **Directional Impact**: Indicates whether each feature had a positive or negative impact
+
+## Security Features
+
+- JWT-based authentication
+- Password encryption using BCrypt
+- CORS configuration for frontend-backend communication
+- User-specific data isolation
+- Secure file upload handling
+
+## Development
+
+### Backend Development
+- The backend uses Spring Boot's auto-configuration
+- Database schema is automatically created/updated using Hibernate
+- JWT tokens expire after 24 hours by default
+- File uploads are stored in the `./uploads` directory
+
+### Frontend Development
+- Uses React functional components with hooks
+- Material-UI provides consistent theming
+- Axios interceptors handle authentication automatically
+- Chart.js provides interactive visualizations
+
+## Project Status & Tracking
+
+- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Comprehensive project status tracker with detailed progress, issues, and next steps
+
+### Quick Status Check
+```bash
+# View current project status
+cat PROJECT_STATUS.md | grep -A 5 "Overall Progress"
+
+# Check critical issues
+cat PROJECT_STATUS.md | grep -A 10 "Critical Issues"
+```
+
+## 📚 Documentation
+
+- **[Setup Guide](docs/SETUP-GUIDE.md)** - Detailed installation and configuration instructions
+- **[User Guide](docs/USER-GUIDE.md)** - Step-by-step user manual
+- **[API Reference](docs/API-GUIDE.md)** - Complete REST API documentation
+- **[Architecture](docs/ARCHITECTURE.md)** - System design and technical details
+- **[Project Status](PROJECT_STATUS.md)** - Current development status and progress
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📊 Project Status
+
+Current development status and progress tracking is available in [PROJECT_STATUS.md](PROJECT_STATUS.md).
+
+## 🐛 Issues & Support
+
+- **Bug Reports**: [Open an issue](https://github.com/your-username/xai-forge/issues)
+- **Feature Requests**: [Start a discussion](https://github.com/your-username/xai-forge/discussions)
+- **Questions**: Check our [documentation](docs/) or open an issue
+
+## License
+
+This project is licensed under the MIT License.
+
+## Future Enhancements
+
+- Support for more ML algorithms (Random Forest, Neural Networks)
+- Advanced XAI techniques (SHAP, Integrated Gradients)
+- Model comparison and evaluation metrics
+- Data preprocessing and feature engineering tools
+- Model deployment and API endpoints
+- Real-time prediction services
