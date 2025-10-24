@@ -21,15 +21,16 @@ import org.tribuo.regression.RegressorFactory;
 import org.tribuo.regression.sgd.linear.LinearSGDTrainer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.example.xaiapp.dto.TrainRequestDto;
-import main.java.com.example.xaiapp.entity.Dataset;
-import main.java.com.example.xaiapp.entity.MLModel;
-import main.java.com.example.xaiapp.repository.DatasetRepository;
-import main.java.com.example.xaiapp.repository.MLModelRepository;
+import com.example.xaiapp.dto.TrainRequestDto;
+import com.example.xaiapp.entity.Dataset;
+import com.example.xaiapp.entity.MLModel;
+import com.example.xaiapp.repository.DatasetRepository;
+import com.example.xaiapp.repository.MLModelRepository;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class ModelService {
     
     private final MLModelRepository modelRepository;
@@ -38,15 +39,17 @@ public class ModelService {
     @Value("${app.file.upload-dir}")
     private String uploadDir;
     
+    @Transactional(isolation = Isolation.REPEATABLE_READ, timeout = 300)
     public MLModel trainModel(TrainRequestDto request, Long userId) throws Exception {
-        // Get dataset
+        // Get dataset with proper transaction isolation
         Dataset dataset = datasetRepository.findByIdAndOwnerId(request.getDatasetId(), userId)
-            .orElseThrow(() -> new RuntimeException("Dataset not found or access denied"));
+            .orElseThrow(() -> new DatasetNotFoundException(request.getDatasetId()));
         
-        // Check if model already exists for this dataset
+        // Check if model already exists for this dataset with pessimistic locking
         Optional<MLModel> existingModel = modelRepository.findByDataset(dataset);
         if (existingModel.isPresent()) {
-            throw new RuntimeException("Model already exists for this dataset");
+            throw new ModelTrainingException("Model already exists for this dataset", 
+                "A model has already been trained for this dataset. Please delete the existing model first.");
         }
         
         // Load and prepare data
@@ -139,25 +142,33 @@ public class ModelService {
         }
     }
     
+    @Transactional(readOnly = true)
     public MLModel getModel(Long modelId, Long userId) {
         return modelRepository.findByIdAndDatasetOwnerId(modelId, userId)
-            .orElseThrow(() -> new RuntimeException("Model not found or access denied"));
+            .orElseThrow(() -> new ModelNotFoundException(modelId));
     }
     
+    @Transactional(readOnly = true)
     public List<MLModel> getUserModels(Long userId) {
         return modelRepository.findByDatasetOwnerId(userId);
     }
     
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void deleteModel(Long modelId, Long userId) throws IOException {
         MLModel model = getModel(modelId, userId);
         
-        // Delete model file
-        Path modelPath = Paths.get(model.getSerializedModelPath());
-        if (Files.exists(modelPath)) {
-            Files.delete(modelPath);
+        try {
+            // Delete model file
+            Path modelPath = Paths.get(model.getSerializedModelPath());
+            if (Files.exists(modelPath)) {
+                Files.delete(modelPath);
+            }
+            
+            // Delete from database
+            modelRepository.delete(model);
+        } catch (IOException e) {
+            log.error("Failed to delete model file: {}", model.getSerializedModelPath(), e);
+            throw new ModelTrainingException("Failed to delete model file", e);
         }
-        
-        // Delete from database
-        modelRepository.delete(model);
     }
 }

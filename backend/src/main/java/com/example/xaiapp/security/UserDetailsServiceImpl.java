@@ -6,8 +6,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import main.java.com.example.xaiapp.entity.User;
-import main.java.com.example.xaiapp.repository.UserRepository;
+import com.example.xaiapp.entity.User;
+import com.example.xaiapp.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor

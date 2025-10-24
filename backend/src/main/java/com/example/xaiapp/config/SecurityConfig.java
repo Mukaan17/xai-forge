@@ -24,7 +24,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import lombok.RequiredArgsConstructor;
-import main.java.com.example.xaiapp.security.JwtAuthenticationFilter;
+import com.example.xaiapp.security.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity

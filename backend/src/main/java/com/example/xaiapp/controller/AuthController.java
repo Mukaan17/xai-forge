@@ -10,13 +10,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import main.java.com.example.xaiapp.dto.ApiResponse;
-import main.java.com.example.xaiapp.dto.JwtAuthResponse;
-import main.java.com.example.xaiapp.dto.LoginRequest;
-import main.java.com.example.xaiapp.dto.UserDto;
-import main.java.com.example.xaiapp.entity.User;
-import main.java.com.example.xaiapp.repository.UserRepository;
-import main.java.com.example.xaiapp.security.JwtTokenProvider;
+import com.example.xaiapp.dto.ApiResponse;
+import com.example.xaiapp.dto.JwtAuthResponse;
+import com.example.xaiapp.dto.LoginRequest;
+import com.example.xaiapp.dto.UserDto;
+import com.example.xaiapp.entity.User;
+import com.example.xaiapp.repository.UserRepository;
+import com.example.xaiapp.security.JwtTokenProvider;
 
 @RestController
 @RequestMapping("/api/auth")

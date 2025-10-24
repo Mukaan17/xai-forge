@@ -15,9 +15,9 @@ import org.tribuo.classification.Label;
 import org.tribuo.regression.Regressor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.example.xaiapp.dto.ExplanationResponse;
-import main.java.com.example.xaiapp.dto.PredictionResponse;
-import main.java.com.example.xaiapp.entity.MLModel;
+import com.example.xaiapp.dto.ExplanationResponse;
+import com.example.xaiapp.dto.PredictionResponse;
+import com.example.xaiapp.entity.MLModel;
 
 @Service
 @RequiredArgsConstructor

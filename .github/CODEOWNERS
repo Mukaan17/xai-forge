@@ -1,0 +1,26 @@
+# Code Owners
+# This file defines who owns which parts of the codebase
+
+# Global owners
+* @Mukaan17
+
+# Backend specific
+/backend/ @Mukaan17
+
+# Frontend specific  
+/frontend/ @Mukaan17
+
+# Documentation
+/docs/ @Mukaan17
+*.md @Mukaan17
+
+# Configuration files
+*.properties @Mukaan17
+*.yml @Mukaan17
+*.yaml @Mukaan17
+pom.xml @Mukaan17
+package.json @Mukaan17
+
+# Security related files
+/backend/src/main/java/com/example/xaiapp/security/ @Mukaan17
+/backend/src/main/java/com/example/xaiapp/config/ @Mukaan17

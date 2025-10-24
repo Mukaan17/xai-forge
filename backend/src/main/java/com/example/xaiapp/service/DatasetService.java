@@ -19,15 +19,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.example.xaiapp.dto.DatasetDto;
-import main.java.com.example.xaiapp.entity.Dataset;
-import main.java.com.example.xaiapp.entity.User;
-import main.java.com.example.xaiapp.repository.DatasetRepository;
-import main.java.com.example.xaiapp.repository.UserRepository;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import com.example.xaiapp.dto.DatasetDto;
+import com.example.xaiapp.entity.Dataset;
+import com.example.xaiapp.entity.User;
+import com.example.xaiapp.repository.DatasetRepository;
+import com.example.xaiapp.repository.UserRepository;
+import com.example.xaiapp.exception.DatasetException;
+import com.example.xaiapp.exception.DatasetNotFoundException;
+import com.example.xaiapp.exception.DatasetParsingException;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class DatasetService {
     
     private final DatasetRepository datasetRepository;
@@ -36,14 +42,15 @@ public class DatasetService {
     @Value("${app.file.upload-dir}")
     private String uploadDir;
     
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public DatasetDto storeFile(MultipartFile file, Long userId) throws IOException {
         // Validate file
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("File is empty");
+            throw new DatasetException("File is empty", "Please select a file to upload.");
         }
         
         if (!file.getOriginalFilename().toLowerCase().endsWith(".csv")) {
-            throw new IllegalArgumentException("Only CSV files are allowed");
+            throw new DatasetException("Only CSV files are allowed", "Please upload a CSV file.");
         }
         
         // Create upload directory if it doesn't exist
@@ -92,11 +99,13 @@ public class DatasetService {
         return convertToDto(savedDataset);
     }
     
+    @Transactional(readOnly = true)
     public Optional<DatasetDto> getDataset(Long datasetId, Long userId) {
         return datasetRepository.findByIdAndOwnerId(datasetId, userId)
             .map(this::convertToDto);
     }
     
+    @Transactional(readOnly = true)
     public List<DatasetDto> listUserDatasets(Long userId) {
         return datasetRepository.findByOwnerId(userId)
             .stream()
@@ -104,27 +113,34 @@ public class DatasetService {
             .toList();
     }
     
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void deleteDataset(Long datasetId, Long userId) throws IOException {
         Optional<Dataset> datasetOpt = datasetRepository.findByIdAndOwnerId(datasetId, userId);
         if (datasetOpt.isPresent()) {
             Dataset dataset = datasetOpt.get();
             
-            // Delete file from filesystem
-            Path filePath = Paths.get(dataset.getFilePath());
-            if (Files.exists(filePath)) {
-                Files.delete(filePath);
+            try {
+                // Delete file from filesystem
+                Path filePath = Paths.get(dataset.getFilePath());
+                if (Files.exists(filePath)) {
+                    Files.delete(filePath);
+                }
+                
+                // Delete from database
+                datasetRepository.delete(dataset);
+            } catch (IOException e) {
+                log.error("Failed to delete dataset file: {}", dataset.getFilePath(), e);
+                throw new DatasetException("Failed to delete dataset file", e);
             }
-            
-            // Delete from database
-            datasetRepository.delete(dataset);
         } else {
-            throw new RuntimeException("Dataset not found or access denied");
+            throw new DatasetNotFoundException(datasetId);
         }
     }
     
+    @Transactional(readOnly = true)
     public Dataset getDatasetEntity(Long datasetId, Long userId) {
         return datasetRepository.findByIdAndOwnerId(datasetId, userId)
-            .orElseThrow(() -> new RuntimeException("Dataset not found or access denied"));
+            .orElseThrow(() -> new DatasetNotFoundException(datasetId));
     }
     
     private DatasetDto convertToDto(Dataset dataset) {

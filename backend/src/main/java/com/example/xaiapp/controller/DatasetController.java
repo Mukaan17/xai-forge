@@ -7,10 +7,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
-import main.java.com.example.xaiapp.dto.ApiResponse;
-import main.java.com.example.xaiapp.dto.DatasetDto;
-import main.java.com.example.xaiapp.entity.User;
-import main.java.com.example.xaiapp.service.DatasetService;
+import com.example.xaiapp.dto.ApiResponse;
+import com.example.xaiapp.dto.DatasetDto;
+import com.example.xaiapp.entity.User;
+import com.example.xaiapp.service.DatasetService;
 
 @RestController
 @RequestMapping("/api/datasets")

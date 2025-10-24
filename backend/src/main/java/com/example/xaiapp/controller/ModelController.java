@@ -8,14 +8,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import main.java.com.example.xaiapp.dto.ApiResponse;
-import main.java.com.example.xaiapp.dto.ExplanationResponse;
-import main.java.com.example.xaiapp.dto.PredictionResponse;
-import main.java.com.example.xaiapp.dto.TrainRequestDto;
-import main.java.com.example.xaiapp.entity.MLModel;
-import main.java.com.example.xaiapp.entity.User;
-import main.java.com.example.xaiapp.service.ModelService;
-import main.java.com.example.xaiapp.service.XaiService;
+import com.example.xaiapp.dto.ApiResponse;
+import com.example.xaiapp.dto.ExplanationResponse;
+import com.example.xaiapp.dto.PredictionResponse;
+import com.example.xaiapp.dto.TrainRequestDto;
+import com.example.xaiapp.entity.MLModel;
+import com.example.xaiapp.entity.User;
+import com.example.xaiapp.service.ModelService;
+import com.example.xaiapp.service.XaiService;
 
 @RestController
 @RequestMapping("/api/models")

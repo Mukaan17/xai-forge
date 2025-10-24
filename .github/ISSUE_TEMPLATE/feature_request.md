@@ -1,5 +1,5 @@
 ---
-name: Feature request
+name: Feature Request
 about: Suggest an idea for this project
 title: '[FEATURE] '
 labels: enhancement
@@ -19,11 +19,5 @@ A clear and concise description of any alternative solutions or features you've 
 **Additional context**
 Add any other context or screenshots about the feature request here.
 
-**Implementation considerations**
-If you have ideas about how this feature could be implemented, please share them here.
-
-**Priority**
-- [ ] Low
-- [ ] Medium
-- [ ] High
-- [ ] Critical
+**Implementation Notes**
+If you have ideas about how this feature could be implemented, please describe them here.

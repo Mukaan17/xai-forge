@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: Bug Report
 about: Create a report to help us improve
 title: '[BUG] '
 labels: bug
@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**Describe the bug**
+**Describe the Bug**
 A clear and concise description of what the bug is.
 
 **To Reproduce**
@@ -17,21 +17,21 @@ Steps to reproduce the behavior:
 3. Scroll down to '....'
 4. See error
 
-**Expected behavior**
+**Expected Behavior**
 A clear and concise description of what you expected to happen.
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
 **Environment (please complete the following information):**
- - OS: [e.g. Windows 10, macOS 12, Ubuntu 20.04]
- - Java Version: [e.g. 17.0.2]
- - Node.js Version: [e.g. 18.12.1]
- - PostgreSQL Version: [e.g. 14.5]
- - Browser: [e.g. Chrome 108, Firefox 107]
+ - OS: [e.g. Windows, macOS, Linux]
+ - Browser [e.g. chrome, safari]
+ - Version [e.g. 22]
+ - Java Version [e.g. 17]
+ - Node.js Version [e.g. 18]
 
-**Additional context**
+**Additional Context**
 Add any other context about the problem here.
 
 **Error Logs**
-If applicable, paste any error logs or stack traces here.
+If applicable, add error logs or stack traces here.
