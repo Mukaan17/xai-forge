@@ -1,8 +1,13 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-09-04 16:08:06
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 15:18:28
+ */
 package com.example.xaiapp.controller;
 
 import java.util.List;
 import java.util.Map;
-import com.example.xaiapp.dto.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +21,8 @@ import com.example.xaiapp.entity.MLModel;
 import com.example.xaiapp.entity.User;
 import com.example.xaiapp.service.ModelService;
 import com.example.xaiapp.service.XaiService;
+import com.example.xaiapp.exception.DatasetParsingException;
+import com.example.xaiapp.exception.ModelTrainingException;
 
 @RestController
 @RequestMapping("/api/models")
@@ -33,9 +40,18 @@ public class ModelController {
             User user = (User) authentication.getPrincipal();
             MLModel model = modelService.trainModel(request, user.getId());
             return ResponseEntity.ok(ApiResponse.success("Model trained successfully", model));
-        } catch (Exception e) {
+        } catch (DatasetParsingException e) {
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error("Failed to train model: " + e.getMessage()));
+                .body(ApiResponse.error("Invalid dataset: " + e.getMessage()));
+        } catch (ModelTrainingException e) {
+            return ResponseEntity.status(500)
+                .body(ApiResponse.error("Training failed: " + e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Invalid parameters: " + e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                .body(ApiResponse.error("Unexpected error: " + e.getMessage()));
         }
     }
     
@@ -87,7 +103,7 @@ public class ModelController {
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> deleteModel(@PathVariable Long id,
+    public ResponseEntity<ApiResponse<String>> deleteModel(@PathVariable Long id,
                                                  Authentication authentication) {
         try {
             User user = (User) authentication.getPrincipal();

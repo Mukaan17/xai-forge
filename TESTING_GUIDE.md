@@ -1,14 +1,16 @@
 # Testing Guide
 
-This guide provides comprehensive instructions for running tests and generating Excel reports for the XAI-Forge application.
+This guide provides comprehensive instructions for running tests and generating Excel reports for the XAI Application.
 
 ## Overview
 
-The XAI-Forge application includes a comprehensive testing suite with:
-- **Unit Tests**: Service layer and component tests
-- **Integration Tests**: Controller and repository tests
-- **End-to-End Tests**: Complete user workflow tests
-- **Excel Reporting**: Test results and coverage in Excel format
+The XAI Application includes a comprehensive testing infrastructure with:
+- **Test Infrastructure**: JaCoCo (0.8.8), Maven Surefire (3.2.5), Testcontainers (1.19.8)
+- **Unit Tests**: Service layer and component tests ✅ **IMPLEMENTED**
+- **Integration Tests**: Controller and repository tests ✅ **IMPLEMENTED**
+- **API Tests**: REST Assured contract tests ✅ **IMPLEMENTED**
+- **End-to-End Tests**: Selenium workflow tests ✅ **IMPLEMENTED**
+- **Excel Reporting**: Test results and coverage in Excel format ✅ **IMPLEMENTED**
 
 ## Prerequisites
 
@@ -18,11 +20,13 @@ The XAI-Forge application includes a comprehensive testing suite with:
 - Node.js 18 or higher
 - PostgreSQL 14 or higher (for integration tests)
 
-### Required Dependencies
-- Apache POI for Excel generation
-- JaCoCo for coverage analysis
-- Mockito for unit testing
-- Testcontainers for database tests
+### Required Dependencies (Configured)
+- **Apache POI 5.2.5** for Excel generation ✅
+- **JaCoCo 0.8.12** for coverage analysis ✅
+- **Mockito** for unit testing ✅
+- **Testcontainers 1.19.8** for database tests ✅
+- **Spring Boot Test** for integration testing ✅
+- **Spring Security Test** for security testing ✅
 
 ## Running Tests
 
@@ -52,11 +56,17 @@ mvn test -Dtest=*IntegrationTest
 
 #### All Backend Tests
 ```bash
-# Run all tests with coverage
+# Run all tests with coverage (when implemented)
 mvn clean test jacoco:report
 
-# Generate Excel reports
+# Generate Excel reports (when implemented)
 mvn test -Dexcel.reports.enabled=true
+
+# Current status: Test infrastructure ready, implementation pending
+# - JaCoCo plugin configured in pom.xml
+# - Maven Surefire plugin configured
+# - Testcontainers dependencies added
+# - Spring Boot Test dependencies included
 ```
 
 ### 2. Frontend Tests

@@ -1,3 +1,9 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-10-24 12:13:58
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 18:38:37
+ */
 package com.example.xaiapp.exception;
 
 import com.example.xaiapp.dto.ApiResponse;

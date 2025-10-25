@@ -1,3 +1,9 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-09-04 16:07:09
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 15:18:37
+ */
 package com.example.xaiapp.service;
 
 import java.io.FileReader;
@@ -8,8 +14,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -61,6 +71,9 @@ public class DatasetService {
         
         // Generate unique filename
         String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.trim().isEmpty()) {
+            throw new DatasetException("File name is null", "Please provide a valid file name.");
+        }
         String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
         Path filePath = uploadPath.resolve(uniqueFilename);
@@ -73,14 +86,17 @@ public class DatasetService {
         long rowCount = 0;
         
         try (Reader reader = new FileReader(filePath.toFile());
-             CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
+             CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build())) {
             
             headers = new ArrayList<>(csvParser.getHeaderNames());
             
-            for (CSVRecord record : csvParser) {
+            for (@SuppressWarnings("unused") CSVRecord record : csvParser) {
                 rowCount++;
             }
         }
+        
+        // Note: Dataset type validation is now handled during model training
+        // when the user specifies the target variable and model type
         
         // Get user
         User user = userRepository.findById(userId)
@@ -152,5 +168,217 @@ public class DatasetService {
         dto.setRowCount(dataset.getRowCount());
         dto.setOwnerId(dataset.getOwner().getId());
         return dto;
+    }
+    
+    
+    /**
+     * Automatically detect dataset type based on target column characteristics
+     * 
+     * This method analyzes the target column to determine if it's suitable for
+     * regression (continuous numeric values) or classification (categorical/discrete values).
+     * 
+     * Detection logic:
+     * - Classification: Non-numeric values, limited unique values (≤20 for small datasets, ≤50 for larger), low numeric ratio (<0.8)
+     * - Regression: All numeric values, many unique values (continuous range), high numeric ratio (≥0.8)
+     * 
+     * @param filePath Path to the CSV file to analyze
+     * @param targetColumn Name of the target column to analyze
+     * @return "REGRESSION" or "CLASSIFICATION" based on data characteristics
+     * @throws IOException if file cannot be read
+     */
+    public String detectDatasetType(Path filePath, String targetColumn) throws IOException {
+        log.info("Detecting dataset type for target column: {}", targetColumn);
+        
+        try (Reader reader = new FileReader(filePath.toFile());
+             CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build())) {
+            
+            Set<String> uniqueValues = new HashSet<>();
+            int numericCount = 0;
+            int totalRows = 0;
+            boolean hasNonNumericValues = false;
+            
+            for (CSVRecord record : csvParser) {
+                totalRows++;
+                String value = record.get(targetColumn);
+                
+                if (value != null && !value.trim().isEmpty()) {
+                    uniqueValues.add(value.trim());
+                    
+                    // Check if value is numeric
+                    try {
+                        Double.parseDouble(value.trim());
+                        numericCount++;
+                    } catch (NumberFormatException e) {
+                        hasNonNumericValues = true;
+                    }
+                }
+            }
+            
+            // Decision logic for dataset type detection
+            int uniqueCount = uniqueValues.size();
+            double numericRatio = (double) numericCount / totalRows;
+            
+            log.info("Dataset analysis - Total rows: {}, Unique values: {}, Numeric ratio: {}", 
+                    totalRows, uniqueCount, numericRatio);
+            
+            // Classification indicators:
+            // 1. Non-numeric values present
+            // 2. Limited unique values (≤20 for small datasets, ≤50 for larger datasets)
+            // 3. Low numeric ratio (< 0.8)
+            if (hasNonNumericValues || 
+                (uniqueCount <= 20 && totalRows <= 1000) || 
+                (uniqueCount <= 50 && totalRows > 1000) ||
+                numericRatio < 0.8) {
+                log.info("Detected CLASSIFICATION dataset - Non-numeric: {}, Unique: {}, Numeric ratio: {}", 
+                        hasNonNumericValues, uniqueCount, numericRatio);
+                return "CLASSIFICATION";
+            }
+            
+            // Regression indicators:
+            // 1. All numeric values
+            // 2. Many unique values (continuous range)
+            // 3. High numeric ratio (≥ 0.8)
+            else {
+                log.info("Detected REGRESSION dataset - All numeric: {}, Unique: {}, Numeric ratio: {}", 
+                        !hasNonNumericValues, uniqueCount, numericRatio);
+                return "REGRESSION";
+            }
+            
+        } catch (Exception e) {
+            log.warn("Error detecting dataset type, defaulting to REGRESSION: {}", e.getMessage());
+            return "REGRESSION"; // Safe default
+        }
+    }
+    
+    /**
+     * Validate regression dataset for data quality issues
+     */
+    private void validateRegressionDataset(Path filePath, List<String> headers) throws IOException {
+        log.info("Validating regression dataset: {}", filePath);
+        
+        List<String> validationErrors = new ArrayList<>();
+        
+        try (Reader reader = new FileReader(filePath.toFile());
+             CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build())) {
+            
+            @SuppressWarnings("unchecked")
+            List<Double>[] columnValues = new List[headers.size()];
+            for (int i = 0; i < headers.size(); i++) {
+                columnValues[i] = new ArrayList<>();
+            }
+            
+            int rowNum = 0;
+            for (CSVRecord record : csvParser) {
+                rowNum++;
+                
+                // Check for missing values
+                for (int i = 0; i < headers.size(); i++) {
+                    String value = record.get(i);
+                    if (value == null || value.trim().isEmpty()) {
+                        validationErrors.add(String.format("Missing value in column '%s' at row %d", headers.get(i), rowNum));
+                    } else {
+                        try {
+                            double numericValue = Double.parseDouble(value.trim());
+                            columnValues[i].add(numericValue);
+                        } catch (NumberFormatException e) {
+                            validationErrors.add(String.format("Non-numeric value '%s' in column '%s' at row %d", value, headers.get(i), rowNum));
+                        }
+                    }
+                }
+            }
+            
+            // Check for outliers using IQR method
+            for (int i = 0; i < headers.size(); i++) {
+                if (!columnValues[i].isEmpty()) {
+                    List<Double> sortedValues = new ArrayList<>(columnValues[i]);
+                    sortedValues.sort(Double::compareTo);
+                    
+                    int size = sortedValues.size();
+                    if (size >= 4) { // Need at least 4 values for IQR calculation
+                        double q1 = sortedValues.get(size / 4);
+                        double q3 = sortedValues.get(3 * size / 4);
+                        double iqr = q3 - q1;
+                        double lowerBound = q1 - 1.5 * iqr;
+                        double upperBound = q3 + 1.5 * iqr;
+                        
+                        long outlierCount = sortedValues.stream()
+                            .filter(v -> v < lowerBound || v > upperBound)
+                            .count();
+                        
+                        if (outlierCount > size * 0.1) { // More than 10% outliers
+                            validationErrors.add(String.format("Column '%s' has %d outliers (%.1f%% of data)", 
+                                headers.get(i), outlierCount, (outlierCount * 100.0 / size)));
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (!validationErrors.isEmpty()) {
+            String errorMessage = "Dataset validation failed: " + String.join("; ", validationErrors);
+            log.warn("Dataset validation failed: {}", errorMessage);
+            throw new DatasetParsingException(errorMessage);
+        }
+        
+        log.info("Dataset validation passed");
+    }
+    
+    /**
+     * Validate classification dataset for data quality issues
+     */
+    private void validateClassificationDataset(Path filePath, List<String> headers) throws IOException {
+        log.info("Validating classification dataset: {}", filePath);
+        
+        List<String> validationErrors = new ArrayList<>();
+        
+        try (Reader reader = new FileReader(filePath.toFile());
+             CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build())) {
+            
+            Map<String, Integer> classCounts = new HashMap<>();
+            int totalRows = 0;
+            
+            for (CSVRecord record : csvParser) {
+                totalRows++;
+                
+                // Check for missing values in all columns
+                for (int i = 0; i < headers.size(); i++) {
+                    String value = record.get(i);
+                    if (value == null || value.trim().isEmpty()) {
+                        validationErrors.add(String.format("Missing value in column '%s' at row %d", headers.get(i), totalRows));
+                    }
+                }
+                
+                // Count class occurrences (assuming last column is target)
+                String targetValue = record.get(headers.size() - 1);
+                if (targetValue != null && !targetValue.trim().isEmpty()) {
+                    classCounts.put(targetValue.trim(), classCounts.getOrDefault(targetValue.trim(), 0) + 1);
+                }
+            }
+            
+            // Check class balance
+            if (classCounts.size() < 2) {
+                validationErrors.add("Classification requires at least 2 classes");
+            } else {
+                // Check for severe class imbalance (more than 90% in one class)
+                int maxCount = classCounts.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+                if (maxCount > totalRows * 0.9) {
+                    validationErrors.add(String.format("Severe class imbalance detected: %d%% of data in one class", 
+                        (maxCount * 100 / totalRows)));
+                }
+            }
+            
+            // Check for too many classes (more than 50)
+            if (classCounts.size() > 50) {
+                validationErrors.add(String.format("Too many classes (%d). Consider if this is a regression problem", classCounts.size()));
+            }
+        }
+        
+        if (!validationErrors.isEmpty()) {
+            String errorMessage = "Classification dataset validation failed: " + String.join("; ", validationErrors);
+            log.warn("Classification dataset validation failed: {}", errorMessage);
+            throw new DatasetParsingException(errorMessage);
+        }
+        
+        log.info("Classification dataset validation passed");
     }
 }

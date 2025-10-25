@@ -1,3 +1,9 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-10-24 12:13:05
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 18:38:33
+ */
 package com.example.xaiapp.exception;
 
 /**

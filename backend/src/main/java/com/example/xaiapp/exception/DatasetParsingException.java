@@ -1,3 +1,9 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-10-24 12:13:19
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 15:18:23
+ */
 package com.example.xaiapp.exception;
 
 /**
@@ -17,8 +23,6 @@ public class DatasetParsingException extends DatasetException {
     }
     
     public DatasetParsingException(String message, Throwable cause) {
-        super("Dataset parsing failed: " + message, 
-              "The uploaded file could not be parsed. Please check that it's a valid CSV file with proper headers and data.", 
-              cause);
+        super("Dataset parsing failed: " + message, cause);
     }
 }

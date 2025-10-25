@@ -1,3 +1,9 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-10-24 12:14:48
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 15:18:18
+ */
 package com.example.xaiapp.builder;
 
 import com.example.xaiapp.dto.TrainRequestDto;
@@ -134,7 +140,7 @@ public class TrainRequestBuilder {
      */
     public TrainRequestDto build() {
         validate();
-        return new TrainRequestDto(modelName, modelType, datasetId, targetVariable, featureNames);
+        return new TrainRequestDto(datasetId, modelName, targetVariable, featureNames, modelType);
     }
     
     /**

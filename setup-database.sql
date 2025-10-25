@@ -6,12 +6,15 @@
  */
 -- XAI Application Database Setup Script
 -- Run this script as a PostgreSQL superuser
+-- 
+-- SECURITY WARNING: Change the default password before production use!
+-- Generate secure password with: openssl rand -base64 32
 
 -- Create database
 CREATE DATABASE xai_db;
 
--- Create user
-CREATE USER xai_user WITH PASSWORD 'xai_password';
+-- Create user with secure password (CHANGE THIS PASSWORD!)
+CREATE USER xai_user WITH PASSWORD 'CHANGE_THIS_PASSWORD_IN_PRODUCTION';
 
 -- Grant privileges
 GRANT ALL PRIVILEGES ON DATABASE xai_db TO xai_user;

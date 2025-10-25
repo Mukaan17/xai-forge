@@ -1,3 +1,9 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-09-04 16:05:25
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 18:38:51
+ */
 package com.example.xaiapp.entity;
 
 import java.time.LocalDateTime;

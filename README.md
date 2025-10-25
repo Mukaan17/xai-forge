@@ -18,6 +18,10 @@
 - **🎨 Modern UI** - Beautiful, responsive React interface with Material-UI
 - **📈 Interactive Visualizations** - Chart.js-powered explanation charts
 - **🔒 Data Security** - User-specific data isolation and secure file handling
+- **⚡ Async Processing** - Non-blocking ML operations with dedicated thread pools
+- **🏗️ Advanced Patterns** - Builder, Factory, and Strategy patterns for maintainable code
+- **🛡️ Robust Error Handling** - Comprehensive exception hierarchy with 11 custom exceptions
+- **⚙️ Configuration Validation** - Startup validation for critical configuration parameters
 
 ## 🚀 Quick Start
 
@@ -32,7 +36,7 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Mukaan17/xai-forge.git
+   git clone <your-repository-url>
    cd xai-forge
    ```
 
@@ -44,7 +48,10 @@
 
 3. **Configure the backend**
    ```bash
-   # Update database credentials in backend/src/main/resources/application.properties
+   # Set required environment variables
+   export JWT_SECRET=$(openssl rand -base64 64)
+   export DB_PASSWORD=your-secure-password
+   
    # Create upload directories
    mkdir -p uploads/datasets uploads/models
    ```
@@ -59,6 +66,8 @@
    ```bash
    cd frontend
    npm install
+   # Optional: Set API URL for different environments
+   export REACT_APP_API_URL=http://localhost:8080/api
    npm start
    ```
 
@@ -68,6 +77,19 @@
 
 > 📖 **Detailed setup instructions** are available in [docs/SETUP-GUIDE.md](docs/SETUP-GUIDE.md)
 
+## Environment Variables
+
+The application uses environment variables for secure configuration. See [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md) for complete documentation.
+
+### Required Variables
+- `JWT_SECRET` - JWT signing secret (generate with `openssl rand -base64 64`)
+- `DB_PASSWORD` - Database password (change from default)
+
+### Optional Variables
+- `REACT_APP_API_URL` - Frontend API URL (default: `http://localhost:8080/api`)
+- `DB_URL` - Database URL (default: `jdbc:postgresql://localhost:5432/xai_db`)
+- `DB_USERNAME` - Database username (default: `xai_user`)
+
 ## Technology Stack
 
 ### Backend
@@ -76,9 +98,15 @@
 - **Spring Security** with JWT authentication
 - **Spring Data JPA** for database operations
 - **PostgreSQL** database
-- **Tribuo** (Oracle Labs) for machine learning and XAI
+- **Tribuo 4.3.2** (Oracle Labs) for machine learning and XAI
 - **Apache Commons CSV** for CSV parsing
+- **Apache POI 5.2.5** for Excel processing
+- **JJWT 0.12.7** for JWT token handling
 - **Lombok** for reducing boilerplate code
+- **Builder Pattern** for complex object creation
+- **Factory Pattern** for ML algorithm selection
+- **Strategy Pattern** for training algorithms
+- **Comprehensive Exception Hierarchy** (11 custom exceptions)
 
 ### Frontend
 - **React 18**
@@ -99,13 +127,17 @@ xai-app/
 ├── backend/                # Spring Boot backend
 │   ├── pom.xml
 │   └── src/main/java/com/example/xaiapp/
-│       ├── config/         # Security and web configuration
+│       ├── builder/       # Builder pattern implementations
+│       ├── config/        # Security and web configuration
 │       ├── controller/     # REST controllers
 │       ├── dto/           # Data Transfer Objects
 │       ├── entity/        # JPA entities
+│       ├── exception/     # Custom exception hierarchy
+│       ├── factory/       # Factory pattern implementations
 │       ├── repository/    # Data repositories
 │       ├── security/      # JWT and security components
-│       └── service/       # Business logic services
+│       ├── service/       # Business logic services
+│       └── strategy/      # Strategy pattern implementations
 └── frontend/              # React frontend
     ├── package.json
     ├── public/
@@ -262,8 +294,8 @@ Current development status and progress tracking is available in [PROJECT_STATUS
 
 ## 🐛 Issues & Support
 
-- **Bug Reports**: [Open an issue](https://github.com/your-username/xai-forge/issues)
-- **Feature Requests**: [Start a discussion](https://github.com/your-username/xai-forge/discussions)
+- **Bug Reports**: Open an issue in your repository
+- **Feature Requests**: Start a discussion in your repository
 - **Questions**: Check our [documentation](docs/) or open an issue
 
 ## License

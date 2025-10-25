@@ -1,3 +1,9 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-09-04 16:06:03
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 15:18:11
+ */
 package com.example.xaiapp.dto;
 
 import lombok.AllArgsConstructor;
@@ -7,21 +13,25 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApiResponse {
+public class ApiResponse<T> {
     
     private boolean success;
     private String message;
-    private Object data;
+    private T data;
     
-    public static ApiResponse success(String message) {
-        return new ApiResponse(true, message, null);
+    public static <T> ApiResponse<T> success(String message) {
+        return new ApiResponse<>(true, message, null);
     }
     
-    public static ApiResponse success(String message, Object data) {
-        return new ApiResponse(true, message, data);
+    public static <T> ApiResponse<T> success(String message, T data) {
+        return new ApiResponse<>(true, message, data);
     }
     
-    public static ApiResponse error(String message) {
-        return new ApiResponse(false, message, null);
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(false, message, null);
+    }
+    
+    public static <T> ApiResponse<T> error(String message, T data) {
+        return new ApiResponse<>(false, message, data);
     }
 }

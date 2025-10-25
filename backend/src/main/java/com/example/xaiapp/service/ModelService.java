@@ -1,3 +1,9 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-09-04 16:07:23
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 15:18:58
+ */
 package com.example.xaiapp.service;
 
 import java.io.IOException;
@@ -14,18 +20,26 @@ import org.springframework.stereotype.Service;
 import org.tribuo.*;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
-import org.tribuo.classification.sgd.linear.LogisticRegressionTrainer;
+import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.data.csv.CSVLoader;
+import org.tribuo.DataSource;
 import org.tribuo.regression.Regressor;
-import org.tribuo.regression.RegressorFactory;
-import org.tribuo.regression.sgd.linear.LinearSGDTrainer;
+import org.tribuo.regression.evaluation.RegressionEvaluator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 import com.example.xaiapp.dto.TrainRequestDto;
 import com.example.xaiapp.entity.Dataset;
 import com.example.xaiapp.entity.MLModel;
 import com.example.xaiapp.repository.DatasetRepository;
 import com.example.xaiapp.repository.MLModelRepository;
+import com.example.xaiapp.factory.AlgorithmFactory;
+import com.example.xaiapp.strategy.ClassificationStrategy;
+import com.example.xaiapp.strategy.RegressionStrategy;
+import com.example.xaiapp.exception.DatasetNotFoundException;
+import com.example.xaiapp.exception.ModelTrainingException;
+import com.example.xaiapp.exception.ModelNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +49,9 @@ public class ModelService {
     
     private final MLModelRepository modelRepository;
     private final DatasetRepository datasetRepository;
+    private final AlgorithmFactory algorithmFactory;
+    private final ClassificationStrategy classificationStrategy;
+    private final RegressionStrategy regressionStrategy;
     
     @Value("${app.file.upload-dir}")
     private String uploadDir;
@@ -60,9 +77,9 @@ public class ModelService {
         MLModel.ModelType modelType = MLModel.ModelType.valueOf(request.getModelType());
         
         if (modelType == MLModel.ModelType.CLASSIFICATION) {
-            trainedModel = trainClassificationModel(tribuoDataset);
+            trainedModel = classificationStrategy.train(tribuoDataset, null);
         } else {
-            trainedModel = trainRegressionModel(tribuoDataset);
+            trainedModel = regressionStrategy.train(tribuoDataset, null);
         }
         
         // Serialize and save model
@@ -92,29 +109,15 @@ public class ModelService {
         if (request.getModelType().equals("CLASSIFICATION")) {
             LabelFactory labelFactory = new LabelFactory();
             CSVLoader<Label> csvLoader = new CSVLoader<>(labelFactory);
-            return csvLoader.loadDataSource(csvPath, request.getTargetVariable(), featureNames);
+            DataSource<Label> dataSource = csvLoader.loadDataSource(csvPath, request.getTargetVariable(), featureNames.toArray(new String[0]));
+            return new MutableDataset<>(dataSource);
         } else {
-            RegressorFactory regressorFactory = new RegressorFactory();
-            CSVLoader<Regressor> csvLoader = new CSVLoader<>(regressorFactory);
-            return csvLoader.loadDataSource(csvPath, request.getTargetVariable(), featureNames);
+            // For regression, use AlgorithmFactory to load data
+            return algorithmFactory.loadDatasetFromCSV(csvPath, request.getTargetVariable(), 
+                request.getFeatureNames(), MLModel.ModelType.REGRESSION);
         }
     }
     
-    private Model<Label> trainClassificationModel(MutableDataset<?> dataset) {
-        @SuppressWarnings("unchecked")
-        MutableDataset<Label> labelDataset = (MutableDataset<Label>) dataset;
-        
-        LogisticRegressionTrainer trainer = new LogisticRegressionTrainer();
-        return trainer.train(labelDataset);
-    }
-    
-    private Model<Regressor> trainRegressionModel(MutableDataset<?> dataset) {
-        @SuppressWarnings("unchecked")
-        MutableDataset<Regressor> regressorDataset = (MutableDataset<Regressor>) dataset;
-        
-        LinearSGDTrainer trainer = new LinearSGDTrainer();
-        return trainer.train(regressorDataset);
-    }
     
     private String serializeModel(Model<?> model, String modelName) throws IOException {
         Path modelDir = Paths.get(uploadDir, "models");
@@ -132,10 +135,66 @@ public class ModelService {
         return modelPath.toString();
     }
     
+    /**
+     * Calculate model accuracy/evaluation metrics based on model type
+     * 
+     * For classification models, returns accuracy (0.0 to 1.0).
+     * For regression models, returns R² (coefficient of determination) clamped to [0.0, 1.0].
+     * 
+     * @param model The trained model to evaluate
+     * @param dataset The dataset to evaluate against
+     * @return Accuracy score (0.0 to 1.0) or null if evaluation fails
+     */
     private Double calculateAccuracy(Model<?> model, MutableDataset<?> dataset) {
         try {
-            Evaluation<?> evaluation = model.evaluate(dataset);
-            return evaluation.accuracy();
+            // For classification, implement real evaluation
+            if (model.getOutputIDInfo().getDomain() instanceof org.tribuo.classification.LabelInfo) {
+                // Classification evaluation
+                @SuppressWarnings("unchecked")
+                Model<Label> labelModel = (Model<Label>) model;
+                @SuppressWarnings("unchecked")
+                MutableDataset<Label> labelDataset = (MutableDataset<Label>) dataset;
+                
+                // Simple evaluation on the same dataset (in production, use train/test split)
+                LabelEvaluator evaluator = new LabelEvaluator();
+                var evaluation = evaluator.evaluate(labelModel, labelDataset);
+                double accuracy = evaluation.accuracy();
+                log.info("Classification accuracy: {}", accuracy);
+                return accuracy;
+            } else {
+                // For regression, calculate actual R² score using Tribuo's RegressionEvaluator
+                @SuppressWarnings("unchecked")
+                Model<Regressor> regressorModel = (Model<Regressor>) model;
+                @SuppressWarnings("unchecked")
+                MutableDataset<Regressor> regressorDataset = (MutableDataset<Regressor>) dataset;
+                
+                // Use Tribuo's RegressionEvaluator for proper regression metrics
+                RegressionEvaluator evaluator = new RegressionEvaluator();
+                var evaluation = evaluator.evaluate(regressorModel, regressorDataset);
+                
+                // Calculate R² (coefficient of determination) as primary accuracy metric
+                // Get the first (and typically only) output dimension's metrics
+                var r2Map = evaluation.r2();
+                var rmseMap = evaluation.rmse();
+                var maeMap = evaluation.mae();
+                
+                // Extract the first dimension's values
+                double rSquared = r2Map.values().iterator().next();
+                double rmse = rmseMap.values().iterator().next();
+                double mae = maeMap.values().iterator().next();
+                
+                log.info("Regression metrics - R²: {}, RMSE: {}, MAE: {}", rSquared, rmse, mae);
+                
+                // Return R² as the "accuracy" metric (0.0 to 1.0 scale, higher is better)
+                // Handle edge cases where R² might be negative or invalid
+                if (Double.isNaN(rSquared) || Double.isInfinite(rSquared)) {
+                    log.warn("Invalid R² value: {}, using 0.0", rSquared);
+                    return 0.0;
+                }
+                
+                // Clamp R² to [0.0, 1.0] range for consistency with accuracy metric
+                return Math.max(0.0, Math.min(1.0, rSquared));
+            }
         } catch (Exception e) {
             log.warn("Could not calculate accuracy: {}", e.getMessage());
             return null;

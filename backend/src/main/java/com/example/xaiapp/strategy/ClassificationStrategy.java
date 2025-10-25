@@ -1,3 +1,9 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-10-24 12:14:10
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 15:18:07
+ */
 package com.example.xaiapp.strategy;
 
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +41,7 @@ public class ClassificationStrategy implements TrainingStrategy {
         
         log.info("Training dataset size: {} examples", labelDataset.size());
         log.info("Number of features: {}", labelDataset.getFeatureMap().size());
-        log.info("Number of classes: {}", labelDataset.getOutputInfo().getLabelCount());
+        log.info("Number of classes: {}", labelDataset.getOutputInfo().size());
         
         Model<Label> model = trainer.train(labelDataset);
         
@@ -76,7 +82,7 @@ public class ClassificationStrategy implements TrainingStrategy {
         @SuppressWarnings("unchecked")
         MutableDataset<Label> labelDataset = (MutableDataset<Label>) dataset;
         
-        if (labelDataset.getOutputInfo().getLabelCount() < 2) {
+        if (labelDataset.getOutputInfo().size() < 2) {
             throw new IllegalArgumentException("Classification requires at least 2 classes");
         }
         

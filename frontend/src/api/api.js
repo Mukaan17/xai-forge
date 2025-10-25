@@ -1,6 +1,13 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-09-04 16:08:28
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 18:36:50
+ */
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+// Use environment variable for API URL, fallback to localhost for development
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
 // Create axios instance
 const api = axios.create({

@@ -1,3 +1,9 @@
+/**
+ * @Author: Mukhil Sundararaj
+ * @Date:   2025-10-24 12:14:38
+ * @Last Modified by:   Mukhil Sundararaj
+ * @Last Modified time: 2025-10-24 18:16:26
+ */
 package com.example.xaiapp.factory;
 
 import com.example.xaiapp.entity.MLModel;
@@ -5,11 +11,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.tribuo.MutableDataset;
-import org.tribuo.classification.Label;
+import org.tribuo.DataSource;
 import org.tribuo.classification.LabelFactory;
-import org.tribuo.data.csv.CSVLoader;
 import org.tribuo.regression.Regressor;
-import org.tribuo.regression.RegressorFactory;
+import org.tribuo.data.csv.CSVLoader;
 
 import java.nio.file.Path;
 
@@ -42,8 +47,9 @@ public class AlgorithmFactory {
                 yield new CSVLoader<>(labelFactory);
             }
             case REGRESSION -> {
-                RegressorFactory regressorFactory = new RegressorFactory();
-                yield new CSVLoader<>(regressorFactory);
+                // For regression, create a CSVLoader with Regressor.Factory
+                // This supports both single-output and multi-output regression
+                yield new CSVLoader<>(new org.tribuo.regression.RegressionFactory());
             }
             default -> throw new IllegalArgumentException("Unsupported model type: " + modelType);
         };
@@ -70,7 +76,8 @@ public class AlgorithmFactory {
         java.util.List<String> allColumns = new java.util.ArrayList<>(featureNames);
         allColumns.add(targetVariable);
         
-        MutableDataset<?> dataset = csvLoader.loadDataSource(csvPath, targetVariable, allColumns);
+        DataSource<?> dataSource = csvLoader.loadDataSource(csvPath, targetVariable, allColumns.toArray(new String[0]));
+        MutableDataset<?> dataset = new MutableDataset<>(dataSource);
         
         log.info("Dataset loaded successfully: {} examples, {} features", 
                 dataset.size(), dataset.getFeatureMap().size());
@@ -87,7 +94,7 @@ public class AlgorithmFactory {
     public Object getFactory(MLModel.ModelType modelType) {
         return switch (modelType) {
             case CLASSIFICATION -> new LabelFactory();
-            case REGRESSION -> new RegressorFactory();
+            case REGRESSION -> Regressor.class;
             default -> throw new IllegalArgumentException("Unsupported model type: " + modelType);
         };
     }

@@ -35,7 +35,7 @@ graph TD
 
 ### 2. Low-Level Backend Architecture
 
-Internally, the backend is structured using a standard **layered architecture** to promote separation of concerns, testability, and maintainability.
+Internally, the backend is structured using a standard **layered architecture** with advanced design patterns to promote separation of concerns, testability, and maintainability.
 
 ```mermaid
 graph TD
@@ -43,25 +43,105 @@ graph TD
         Controller(Controller Layer) --> Service(Service Layer)
         Service --> Repository(Repository Layer)
         Repository --> Entity(Entity Layer)
+        Service --> Builder(Builder Pattern)
+        Service --> Factory(Factory Pattern)
+        Service --> Strategy(Strategy Pattern)
+        Controller --> Exception(Exception Handler)
+        Service --> Config(Configuration Validator)
     end
 ```
 
+**Core Layers:**
 *   **Controller Layer (`@RestController`):** The entry point for all API requests. Handles HTTP protocol, validates DTOs, and calls the appropriate service. Contains no business logic.
 *   **Service Layer (`@Service`):** Contains the core application logic. Orchestrates model training, prediction, and explanation generation by coordinating data from repositories and external libraries like Tribuo.
 *   **Repository Layer (`@Repository`):** An abstraction over the database provided by Spring Data JPA. Provides CRUD functionality for entities.
 *   **Entity Layer (`@Entity`):** Plain Java Objects (POJOs) that map directly to tables in the PostgreSQL database.
 
+**Advanced Components:**
+*   **Builder Pattern:** Fluent object creation for complex DTOs (PredictionResponseBuilder, TrainRequestBuilder)
+*   **Factory Pattern:** Algorithm selection and model creation (AlgorithmFactory, ModelFactory)
+*   **Strategy Pattern:** Training algorithm implementations (ClassificationStrategy, RegressionStrategy)
+*   **Exception Handler:** Global error handling with 11 custom exceptions
+*   **Configuration Validator:** Startup validation for critical parameters
+
 ---
 
-### 3. Data Flow: Prediction & Explanation
+### 3. Package Structure & Component Count
 
-This sequence diagram illustrates the interactions for the system's most critical feature.
+The backend consists of **47 Java source files** organized into the following packages:
+
+```
+com.example.xaiapp/
+├── builder/           # Builder Pattern (2 files)
+│   ├── PredictionResponseBuilder.java
+│   └── TrainRequestBuilder.java
+├── config/           # Configuration (5 files)
+│   ├── AsyncConfig.java
+│   ├── ConfigurationValidator.java
+│   ├── MLTrainingConfig.java
+│   ├── SecurityConfig.java
+│   └── XaiConfig.java
+├── controller/       # REST Controllers (3 files)
+│   ├── AuthController.java
+│   ├── DatasetController.java
+│   └── ModelController.java
+├── dto/             # Data Transfer Objects (8 files)
+│   ├── ApiResponse.java
+│   ├── DatasetDto.java
+│   ├── ExplanationResponse.java
+│   ├── JwtAuthResponse.java
+│   ├── LoginRequest.java
+│   ├── PredictionResponse.java
+│   ├── TrainRequestDto.java
+│   └── UserDto.java
+├── entity/          # JPA Entities (3 files)
+│   ├── Dataset.java
+│   ├── MLModel.java
+│   └── User.java
+├── exception/       # Exception Hierarchy (11 files)
+│   ├── AuthenticationException.java
+│   ├── AuthorizationException.java
+│   ├── ConcurrentModificationException.java
+│   ├── DatasetException.java
+│   ├── DatasetNotFoundException.java
+│   ├── DatasetParsingException.java
+│   ├── GlobalExceptionHandler.java
+│   ├── ModelNotFoundException.java
+│   ├── ModelTrainingException.java
+│   ├── ResourceExhaustedException.java
+│   └── XaiException.java
+├── factory/         # Factory Pattern (2 files)
+│   ├── AlgorithmFactory.java
+│   └── ModelFactory.java
+├── repository/      # Data Repositories (3 files)
+│   ├── DatasetRepository.java
+│   ├── MLModelRepository.java
+│   └── UserRepository.java
+├── security/        # Security Components (3 files)
+│   ├── JwtAuthenticationFilter.java
+│   ├── JwtTokenProvider.java
+│   └── UserDetailsServiceImpl.java
+├── service/         # Business Logic (3 files)
+│   ├── DatasetService.java
+│   ├── ModelService.java
+│   └── XaiService.java
+├── strategy/        # Strategy Pattern (3 files)
+│   ├── ClassificationStrategy.java
+│   ├── RegressionStrategy.java
+│   └── TrainingStrategy.java
+└── XaiApplication.java  # Main Application Class
+```
+
+### 4. Data Flow: Prediction & Explanation
+
+This sequence diagram illustrates the interactions for the system's most critical feature, including the new Builder pattern usage.
 
 ```mermaid
 sequenceDiagram
     participant Client as React App
     participant ModelController as Controller
     participant XaiService as Service
+    participant Builder as PredictionResponseBuilder
     participant MLModelRepository as Repository
     participant FileSystem as File System
     participant Tribuo as Tribuo ML Engine
@@ -76,6 +156,30 @@ sequenceDiagram
     XaiService->>+Tribuo: Create LIME explainer with model
     XaiService->>+Tribuo: generateExplanation(inputData)
     Tribuo-->>-XaiService: Return Explanation object
+    XaiService->>+Builder: Create PredictionResponseBuilder
+    Builder-->>-XaiService: Return built PredictionResponse
     XaiService-->>-ModelController: Return ExplanationResponse DTO
     ModelController-->>-Client: 200 OK (with JSON payload)
+```
+
+### 5. Exception Handling Architecture
+
+The system implements a comprehensive exception hierarchy with 11 custom exceptions:
+
+```mermaid
+graph TD
+    XaiException[XaiException<br/>Base Exception] --> AuthException[AuthenticationException]
+    XaiException --> AuthzException[AuthorizationException]
+    XaiException --> DatasetException[DatasetException]
+    XaiException --> ModelException[ModelTrainingException]
+    XaiException --> ResourceException[ResourceExhaustedException]
+    XaiException --> ConcurrentException[ConcurrentModificationException]
+    
+    DatasetException --> DatasetNotFound[DatasetNotFoundException]
+    DatasetException --> DatasetParsing[DatasetParsingException]
+    
+    ModelException --> ModelNotFound[ModelNotFoundException]
+    
+    GlobalHandler[GlobalExceptionHandler] --> XaiException
+    GlobalHandler --> StandardExceptions[Standard Java Exceptions]
 ```

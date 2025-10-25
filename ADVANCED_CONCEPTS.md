@@ -668,9 +668,166 @@ management.endpoint.health.show-details=when-authorized
 
 ---
 
+## 11. Builder Pattern
+
+**Concept**: Fluent interface for complex object creation with validation
+
+**Implementation**:
+- PredictionResponseBuilder for prediction responses
+- TrainRequestBuilder for training requests
+- Method chaining for fluent API
+- Built-in validation and error handling
+
+**Code Example**:
+```java
+// Builder Pattern Implementation
+public class PredictionResponseBuilder {
+    private String prediction;
+    private Double confidence;
+    private Map<String, Object> probabilities;
+    private Map<String, String> inputData;
+    
+    public static PredictionResponseBuilder builder() {
+        return new PredictionResponseBuilder();
+    }
+    
+    public PredictionResponseBuilder setPrediction(String prediction) {
+        this.prediction = prediction;
+        return this;
+    }
+    
+    public PredictionResponseBuilder setConfidence(Double confidence) {
+        this.confidence = confidence;
+        return this;
+    }
+    
+    public PredictionResponse build() {
+        validate();
+        return new PredictionResponse(prediction, confidence, probabilities, inputData);
+    }
+    
+    private void validate() {
+        if (prediction == null || prediction.trim().isEmpty()) {
+            throw new IllegalArgumentException("Prediction value is required");
+        }
+        if (confidence == null || confidence < 0.0 || confidence > 1.0) {
+            throw new IllegalArgumentException("Confidence score must be between 0.0 and 1.0");
+        }
+    }
+}
+```
+
+**Benefits**:
+- Fluent and readable object creation
+- Built-in validation
+- Immutable final objects
+- Type-safe construction
+
+---
+
+## 12. Configuration Validation
+
+**Concept**: Startup validation for critical configuration parameters
+
+**Implementation**:
+- ConfigurationValidator component
+- Environment variable validation
+- Database connectivity checks
+- File system permissions validation
+- ML parameter range validation
+
+**Code Example**:
+```java
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class ConfigurationValidator {
+    
+    @Value("${app.jwt.secret}")
+    private String jwtSecret;
+    
+    @Value("${app.file.upload-dir}")
+    private String uploadDir;
+    
+    @PostConstruct
+    public void validateConfiguration() {
+        validateJwtSecret();
+        validateUploadDirectory();
+        validateDatabaseConnection();
+        log.info("Configuration validation completed successfully");
+    }
+    
+    private void validateJwtSecret() {
+        if (jwtSecret == null || jwtSecret.length() < 32) {
+            throw new IllegalStateException("JWT_SECRET must be at least 32 characters");
+        }
+    }
+}
+```
+
+**Benefits**:
+- Early failure detection
+- Clear error messages
+- Production-ready configuration
+- Security validation
+
+---
+
+## 13. Exception Hierarchy
+
+**Concept**: Comprehensive custom exception hierarchy for specific error handling
+
+**Implementation**:
+- 11 custom exception classes
+- Hierarchical exception structure
+- Specific error types for different scenarios
+- Global exception handler with proper HTTP status codes
+
+**Code Example**:
+```java
+// Base Exception
+public abstract class XaiException extends RuntimeException {
+    protected XaiException(String message) {
+        super(message);
+    }
+}
+
+// Specific Exceptions
+public class DatasetNotFoundException extends XaiException {
+    public DatasetNotFoundException(Long datasetId) {
+        super("Dataset not found with ID: " + datasetId);
+    }
+}
+
+public class ModelTrainingException extends XaiException {
+    public ModelTrainingException(String message, Throwable cause) {
+        super("Model training failed: " + message, cause);
+    }
+}
+
+// Global Exception Handler
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(DatasetNotFoundException.class)
+    public ResponseEntity<ErrorDetails> handleDatasetNotFound(DatasetNotFoundException ex) {
+        ErrorDetails error = new ErrorDetails("DATASET_NOT_FOUND", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+}
+```
+
+**Benefits**:
+- Specific error handling
+- Clear error messages
+- Proper HTTP status codes
+- Centralized error management
+
+---
+
 ## Summary
 
-The XAI-Forge project demonstrates **10+ advanced Java concepts** that go well beyond basic CRUD operations:
+The XAI-Forge project demonstrates **13+ advanced Java concepts** that go well beyond basic CRUD operations:
 
 1. **Three-Tier Architecture** - Clear separation of concerns
 2. **JWT Authentication & Security** - Stateless authentication
@@ -682,6 +839,9 @@ The XAI-Forge project demonstrates **10+ advanced Java concepts** that go well b
 8. **Transaction Management** - Data consistency
 9. **Design Patterns** - Maintainable code architecture
 10. **Connection Pooling** - Database performance optimization
+11. **Builder Pattern** - Fluent object creation with validation
+12. **Configuration Validation** - Startup parameter validation
+13. **Exception Hierarchy** - Comprehensive error handling
 
 These concepts demonstrate enterprise-level Java development practices, showcasing advanced software engineering principles that are essential for building robust, scalable, and maintainable applications.
 

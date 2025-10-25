@@ -57,6 +57,16 @@ public class SecurityConfig {
                 .requestMatchers("/api/public/**").permitAll()
                 .anyRequest().authenticated()
             )
+            .headers(headers -> headers
+                .frameOptions(frameOptions -> frameOptions.deny())
+                .contentTypeOptions(contentTypeOptions -> contentTypeOptions.and())
+                .httpStrictTransportSecurity(hstsConfig -> hstsConfig
+                    .maxAgeInSeconds(31536000)
+                )
+                .xssProtection(xssConfig -> xssConfig
+                    .disable()
+                )
+            )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();

@@ -120,9 +120,105 @@ This document provides a detailed reference for the REST API endpoints exposed b
     ```json
     {
         "prediction": "True",
+        "confidence": 0.85,
+        "probabilities": {
+            "True": 0.85,
+            "False": 0.15
+        },
+        "inputData": {
+            "age": "45",
+            "tenure": "3"
+        },
         "explanation": [
             { "feature": "tenure", "score": 0.65 },
             { "feature": "age", "score": -0.21 }
         ]
     }
     ```
+
+---
+
+## Error Responses
+
+### Standard Error Format
+
+All error responses follow a consistent format:
+
+```json
+{
+    "success": false,
+    "message": "Error description",
+    "errorCode": "ERROR_CODE",
+    "timestamp": "2025-10-24T18:45:00Z"
+}
+```
+
+### Common Error Responses
+
+#### 400 Bad Request
+```json
+{
+    "success": false,
+    "message": "Validation failed",
+    "errorCode": "VALIDATION_ERROR",
+    "details": {
+        "field": "modelName",
+        "reason": "Model name is required"
+    }
+}
+```
+
+#### 401 Unauthorized
+```json
+{
+    "success": false,
+    "message": "Authentication required",
+    "errorCode": "AUTHENTICATION_REQUIRED"
+}
+```
+
+#### 404 Not Found
+```json
+{
+    "success": false,
+    "message": "Dataset not found with ID: 123",
+    "errorCode": "DATASET_NOT_FOUND"
+}
+```
+
+#### 500 Internal Server Error
+```json
+{
+    "success": false,
+    "message": "Model training failed: Insufficient data",
+    "errorCode": "MODEL_TRAINING_ERROR"
+}
+```
+
+### Configuration Validation Errors
+
+#### Startup Configuration Errors
+```json
+{
+    "success": false,
+    "message": "Configuration validation failed",
+    "errorCode": "CONFIGURATION_ERROR",
+    "details": {
+        "parameter": "JWT_SECRET",
+        "reason": "JWT_SECRET must be at least 32 characters"
+    }
+}
+```
+
+### Exception Hierarchy Error Codes
+
+| Exception | Error Code | HTTP Status |
+|-----------|------------|-------------|
+| `AuthenticationException` | `AUTHENTICATION_ERROR` | 401 |
+| `AuthorizationException` | `AUTHORIZATION_ERROR` | 403 |
+| `DatasetNotFoundException` | `DATASET_NOT_FOUND` | 404 |
+| `ModelNotFoundException` | `MODEL_NOT_FOUND` | 404 |
+| `ModelTrainingException` | `MODEL_TRAINING_ERROR` | 500 |
+| `DatasetParsingException` | `DATASET_PARSING_ERROR` | 400 |
+| `ResourceExhaustedException` | `RESOURCE_EXHAUSTED` | 507 |
+| `ConcurrentModificationException` | `CONCURRENT_MODIFICATION` | 409 |
