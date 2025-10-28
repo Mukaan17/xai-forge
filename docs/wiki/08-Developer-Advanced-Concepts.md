@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [ADVANCED_CONCEPTS.md](https://github.com/Mukaan17/xai-forge/blob/main/ADVANCED_CONCEPTS.md)
 
-**Navigation**: [[Home]] > [[Developer Documentation]] > Advanced Concepts
+**Navigation**: [[Home]] > Developer Documentation > Advanced Concepts
 
 ## Table of Contents
 

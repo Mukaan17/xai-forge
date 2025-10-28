@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [README.md](https://github.com/Mukaan17/xai-forge/blob/main/README.md)
 
-**Navigation**: [[Home]] > [[Getting Started]] > Quick Start
+**Navigation**: [[Home]] > Getting Started > Quick Start
 
 ## Table of Contents
 

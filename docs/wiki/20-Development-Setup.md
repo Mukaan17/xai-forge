@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains detailed development setup instructions from [CONTRIBUTING.md](https://github.com/Mukaan17/xai-forge/blob/main/CONTRIBUTING.md)
 
-**Navigation**: [[Home]] > [[Contributing & Development]] > Development Setup
+**Navigation**: [[Home]] > Contributing & Development > Development Setup
 
 ## Table of Contents
 

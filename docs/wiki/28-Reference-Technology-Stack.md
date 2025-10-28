@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page provides a comprehensive overview of the XAI-Forge technology stack
 
-**Navigation**: [[Home]] > [[Reference & Resources]] > Technology Stack
+**Navigation**: [[Home]] > Reference & Resources > Technology Stack
 
 ## Table of Contents
 

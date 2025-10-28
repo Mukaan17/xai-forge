@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [docs/ARCHITECTURE.md](https://github.com/Mukaan17/xai-forge/blob/main/docs/ARCHITECTURE.md)
 
-**Navigation**: [[Home]] > [[Developer Documentation]] > Architecture
+**Navigation**: [[Home]] > Developer Documentation > Architecture
 
 ## Table of Contents
 

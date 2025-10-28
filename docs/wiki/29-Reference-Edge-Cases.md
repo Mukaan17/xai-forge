@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [EDGE_CASES.md](https://github.com/Mukaan17/xai-forge/blob/main/EDGE_CASES.md)
 
-**Navigation**: [[Home]] > [[Reference & Resources]] > Edge Cases
+**Navigation**: [[Home]] > Reference & Resources > Edge Cases
 
 ## Table of Contents
 

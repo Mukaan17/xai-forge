@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [docs/API-GUIDE.md](https://github.com/Mukaan17/xai-forge/blob/main/docs/API-GUIDE.md)
 
-**Navigation**: [[Home]] > [[Developer Documentation]] > API Reference
+**Navigation**: [[Home]] > Developer Documentation > API Reference
 
 ## Table of Contents
 

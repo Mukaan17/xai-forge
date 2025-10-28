@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [PROJECT_STATUS.md](https://github.com/Mukaan17/xai-forge/blob/main/PROJECT_STATUS.md)
 
-**Navigation**: [[Home]] > [[Project Management]] > Project Status
+**Navigation**: [[Home]] > Project Management > Project Status
 
 ## Table of Contents
 

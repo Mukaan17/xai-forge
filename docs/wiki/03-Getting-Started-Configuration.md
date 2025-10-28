@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [docs/ENVIRONMENT_VARIABLES.md](https://github.com/Mukaan17/xai-forge/blob/main/docs/ENVIRONMENT_VARIABLES.md)
 
-**Navigation**: [[Home]] > [[Getting Started]] > Configuration
+**Navigation**: [[Home]] > Getting Started > Configuration
 
 ## Table of Contents
 

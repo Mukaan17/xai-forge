@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains coding standards from [CONTRIBUTING.md](https://github.com/Mukaan17/xai-forge/blob/main/CONTRIBUTING.md)
 
-**Navigation**: [[Home]] > [[Contributing & Development]] > Coding Standards
+**Navigation**: [[Home]] > Contributing & Development > Coding Standards
 
 ## Table of Contents
 

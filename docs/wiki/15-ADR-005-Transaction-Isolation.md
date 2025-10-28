@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [docs/adr/ADR-005-transaction-isolation.md](https://github.com/Mukaan17/xai-forge/blob/main/docs/adr/ADR-005-transaction-isolation.md)
 
-**Navigation**: [[Home]] > [[Architecture Decisions]] > ADR-005-Transaction-Isolation
+**Navigation**: [[Home]] > Architecture Decisions > ADR-005-Transaction-Isolation
 
 ## Status
 ✅ Accepted

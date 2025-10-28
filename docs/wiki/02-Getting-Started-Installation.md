@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [docs/SETUP-GUIDE.md](https://github.com/Mukaan17/xai-forge/blob/main/docs/SETUP-GUIDE.md)
 
-**Navigation**: [[Home]] > [[Getting Started]] > Installation
+**Navigation**: [[Home]] > Getting Started > Installation
 
 ## Table of Contents
 

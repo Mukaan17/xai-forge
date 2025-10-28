@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page extracts design pattern details from [ADVANCED_CONCEPTS.md](https://github.com/Mukaan17/xai-forge/blob/main/ADVANCED_CONCEPTS.md)
 
-**Navigation**: [[Home]] > [[Developer Documentation]] > Design Patterns
+**Navigation**: [[Home]] > Developer Documentation > Design Patterns
 
 ## Table of Contents
 
@@ -512,5 +512,5 @@ MLModel model = classificationModelService.trainModel(request, userId);
 
 ---
 
-**Next**: [[Architecture Decisions]] | **Previous**: [[Advanced Concepts]]  
+**Next**: Architecture Decisions | **Previous**: [[Advanced Concepts]]  
 **Related**: [[06-Developer-Architecture]], [[Advanced Concepts]], [[19-Contributing]]

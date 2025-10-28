@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page provides definitions for technical terms used throughout the XAI-Forge project
 
-**Navigation**: [[Home]] > [[Reference & Resources]] > Glossary
+**Navigation**: [[Home]] > Reference & Resources > Glossary
 
 ## Table of Contents
 

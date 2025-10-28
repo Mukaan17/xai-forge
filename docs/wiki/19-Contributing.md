@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [CONTRIBUTING.md](https://github.com/Mukaan17/xai-forge/blob/main/CONTRIBUTING.md)
 
-**Navigation**: [[Home]] > [[Contributing & Development]] > Contributing
+**Navigation**: [[Home]] > Contributing & Development > Contributing
 
 ## Table of Contents
 

@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page outlines the future development roadmap for XAI-Forge
 
-**Navigation**: [[Home]] > [[Project Management]] > Roadmap
+**Navigation**: [[Home]] > Project Management > Roadmap
 
 ## Table of Contents
 

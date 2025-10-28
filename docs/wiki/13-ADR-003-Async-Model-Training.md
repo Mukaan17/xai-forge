@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [docs/adr/ADR-003-async-model-training.md](https://github.com/Mukaan17/xai-forge/blob/main/docs/adr/ADR-003-async-model-training.md)
 
-**Navigation**: [[Home]] > [[Architecture Decisions]] > ADR-003-Async-Model-Training
+**Navigation**: [[Home]] > Architecture Decisions > ADR-003-Async-Model-Training
 
 ## Status
 ✅ Accepted

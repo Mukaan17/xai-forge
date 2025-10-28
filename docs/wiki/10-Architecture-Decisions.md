@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page provides an index and overview of all Architecture Decision Records from [docs/adr/](https://github.com/Mukaan17/xai-forge/blob/main/docs/adr/)
 
-**Navigation**: [[Home]] > [[Architecture Decisions]] > Architecture Decisions
+**Navigation**: [[Home]] > Architecture Decisions > Architecture Decisions
 
 ## Table of Contents
 

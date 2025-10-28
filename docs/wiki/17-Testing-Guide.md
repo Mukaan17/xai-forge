@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [TESTING_GUIDE.md](https://github.com/Mukaan17/xai-forge/blob/main/TESTING_GUIDE.md)
 
-**Navigation**: [[Home]] > [[Testing & Quality]] > Testing Guide
+**Navigation**: [[Home]] > Testing & Quality > Testing Guide
 
 ## Table of Contents
 

@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [docs/adr/ADR-006-design-patterns.md](https://github.com/Mukaan17/xai-forge/blob/main/docs/adr/ADR-006-design-patterns.md)
 
-**Navigation**: [[Home]] > [[Architecture Decisions]] > ADR-006-Design-Patterns
+**Navigation**: [[Home]] > Architecture Decisions > ADR-006-Design-Patterns
 
 ## Status
 ✅ Accepted

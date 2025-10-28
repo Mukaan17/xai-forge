@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [CHANGELOG.md](https://github.com/Mukaan17/xai-forge/blob/main/CHANGELOG.md)
 
-**Navigation**: [[Home]] > [[Project Management]] > Changelog
+**Navigation**: [[Home]] > Project Management > Changelog
 
 ## Table of Contents
 

@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [docs/adr/ADR-002-jwt-authentication.md](https://github.com/Mukaan17/xai-forge/blob/main/docs/adr/ADR-002-jwt-authentication.md)
 
-**Navigation**: [[Home]] > [[Architecture Decisions]] > ADR-002-JWT-Authentication
+**Navigation**: [[Home]] > Architecture Decisions > ADR-002-JWT-Authentication
 
 ## Status
 ✅ Accepted

@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [TEST-COVERAGE-REPORT.md](https://github.com/Mukaan17/xai-forge/blob/main/TEST-COVERAGE-REPORT.md)
 
-**Navigation**: [[Home]] > [[Testing & Quality]] > Test Coverage
+**Navigation**: [[Home]] > Testing & Quality > Test Coverage
 
 ## Table of Contents
 

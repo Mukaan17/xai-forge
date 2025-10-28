@@ -2,7 +2,7 @@
 
 > 📘 **Source**: This wiki page contains complete information from [docs/adr/ADR-001-tribuo-ml-library.md](https://github.com/Mukaan17/xai-forge/blob/main/docs/adr/ADR-001-tribuo-ml-library.md)
 
-**Navigation**: [[Home]] > [[Architecture Decisions]] > ADR-001-Tribuo-ML-Library
+**Navigation**: [[Home]] > Architecture Decisions > ADR-001-Tribuo-ML-Library
 
 ## Status
 ✅ Accepted
