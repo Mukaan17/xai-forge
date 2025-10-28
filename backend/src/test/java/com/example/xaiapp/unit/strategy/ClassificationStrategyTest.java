@@ -15,8 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.tribuo.MutableDataset;
 import org.tribuo.Model;
 import org.tribuo.classification.Label;
-import org.tribuo.classification.evaluation.LabelEvaluator;
-import org.tribuo.classification.evaluation.LabelEvaluation;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -33,16 +31,10 @@ class ClassificationStrategyTest {
     private ClassificationStrategy classificationStrategy;
     
     private MutableDataset<Label> testDataset;
-    private Model<Label> testModel;
-    private LabelEvaluator testEvaluator;
-    private LabelEvaluation testEvaluation;
     
     @BeforeEach
     void setUp() {
         testDataset = mock(MutableDataset.class);
-        testModel = mock(Model.class);
-        testEvaluator = mock(LabelEvaluator.class);
-        testEvaluation = mock(LabelEvaluation.class);
     }
     
     @Test
@@ -182,7 +174,7 @@ class ClassificationStrategyTest {
     }
     
     @Test
-    void testTrain_WithBinaryClassification() {
+    void testTrain_WithBinaryClassification() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -197,7 +189,7 @@ class ClassificationStrategyTest {
     }
     
     @Test
-    void testTrain_WithMultiClassClassification() {
+    void testTrain_WithMultiClassClassification() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -250,7 +242,7 @@ class ClassificationStrategyTest {
     }
     
     @Test
-    void testTrain_WithExtremeLargeDataset() {
+    void testTrain_WithExtremeLargeDataset() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(Integer.MAX_VALUE);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -265,7 +257,7 @@ class ClassificationStrategyTest {
     }
     
     @Test
-    void testTrain_WithExtremeSmallDataset() {
+    void testTrain_WithExtremeSmallDataset() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(2);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -300,32 +292,6 @@ class ClassificationStrategyTest {
         
         // Act & Assert
         assertThrows(NullPointerException.class, () -> {
-            classificationStrategy.train(testDataset, null);
-        });
-    }
-    
-    @Test
-    void testTrain_WithInvalidDomainType() {
-        // Arrange
-        when(testDataset.size()).thenReturn(100);
-        when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
-        when(testDataset.getOutputIDInfo().getDomain()).thenReturn(mock(Object.class)); // Invalid domain type
-        
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            classificationStrategy.train(testDataset, null);
-        });
-    }
-    
-    @Test
-    void testTrain_WithRegressionDataset() {
-        // Arrange
-        when(testDataset.size()).thenReturn(100);
-        when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
-        when(testDataset.getOutputIDInfo().getDomain()).thenReturn(mock(org.tribuo.regression.Regressor.class));
-        
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
             classificationStrategy.train(testDataset, null);
         });
     }

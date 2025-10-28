@@ -67,7 +67,6 @@ class ModelServiceTest {
     private User testUser;
     private Dataset testDataset;
     private TrainRequestDto testRequest;
-    private MutableDataset<?> testTribuoDataset;
     private Model<?> testModel;
     
     @BeforeEach
@@ -79,7 +78,6 @@ class ModelServiceTest {
         testUser = TestDataBuilder.createTestUser();
         testDataset = TestDataBuilder.createTestDataset(testUser);
         testRequest = TestDataBuilder.createTrainRequest(testDataset.getId());
-        testTribuoDataset = mock(MutableDataset.class);
         testModel = mock(Model.class);
     }
     

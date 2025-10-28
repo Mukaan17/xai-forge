@@ -13,7 +13,6 @@ import com.example.xaiapp.entity.MLModel;
 import com.example.xaiapp.entity.User;
 import com.example.xaiapp.repository.MLModelRepository;
 import com.example.xaiapp.service.XaiService;
-import com.example.xaiapp.util.TestConstants;
 import com.example.xaiapp.util.TestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,19 +23,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.any;
 import org.tribuo.Model;
-import org.tribuo.classification.Label;
-import org.tribuo.regression.Regressor;
-
-import java.io.ByteArrayInputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -44,7 +38,7 @@ import static org.mockito.Mockito.*;
  * Tests prediction and explanation generation with LIME
  */
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 class XaiServiceTest {
     
     @Mock
@@ -79,10 +73,8 @@ class XaiServiceTest {
         when(modelRepository.findByIdAndDatasetOwnerId(1L, testUser.getId()))
             .thenReturn(Optional.of(testModel));
         
-        // Mock model deserialization
-        @SuppressWarnings("unchecked")
         org.tribuo.Prediction<?> mockPrediction = mock(org.tribuo.Prediction.class);
-        doReturn(mockPrediction).when(mockTribuoModel).predict(ArgumentMatchers.any());
+        doReturn(mockPrediction).when((org.tribuo.Model) mockTribuoModel).predict(ArgumentMatchers.<org.tribuo.Example>any());
         when(mockTribuoModel.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
         
         // Mock file reading and deserialization
@@ -109,7 +101,8 @@ class XaiServiceTest {
             .thenReturn(Optional.of(testModel));
         
         // Mock regression model
-        doReturn(mock(org.tribuo.Prediction.class)).when(mockTribuoModel).predict(ArgumentMatchers.any());
+        org.tribuo.Prediction<?> mockPrediction = mock(org.tribuo.Prediction.class);
+        doReturn(mockPrediction).when((org.tribuo.Model) mockTribuoModel).predict(ArgumentMatchers.<org.tribuo.Example>any());
         when(mockTribuoModel.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
         
         // Mock file reading and deserialization
@@ -162,10 +155,8 @@ class XaiServiceTest {
         when(modelRepository.findByIdAndDatasetOwnerId(1L, testUser.getId()))
             .thenReturn(Optional.of(testModel));
         
-        // Mock model deserialization
-        @SuppressWarnings("unchecked")
         org.tribuo.Prediction<?> mockPrediction = mock(org.tribuo.Prediction.class);
-        doReturn(mockPrediction).when(mockTribuoModel).predict(ArgumentMatchers.any());
+        doReturn(mockPrediction).when((org.tribuo.Model) mockTribuoModel).predict(ArgumentMatchers.<org.tribuo.Example>any());
         when(mockTribuoModel.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
         
         // Mock file reading and deserialization
@@ -193,7 +184,8 @@ class XaiServiceTest {
             .thenReturn(Optional.of(testModel));
         
         // Mock regression model
-        doReturn(mock(org.tribuo.Prediction.class)).when(mockTribuoModel).predict(ArgumentMatchers.any());
+        org.tribuo.Prediction<?> mockPrediction = mock(org.tribuo.Prediction.class);
+        doReturn(mockPrediction).when((org.tribuo.Model) mockTribuoModel).predict(ArgumentMatchers.<org.tribuo.Example>any());
         when(mockTribuoModel.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
         
         // Mock file reading and deserialization
@@ -252,10 +244,8 @@ class XaiServiceTest {
         when(modelRepository.findByIdAndDatasetOwnerId(1L, testUser.getId()))
             .thenReturn(Optional.of(testModel));
         
-        // Mock model deserialization
-        @SuppressWarnings("unchecked")
         org.tribuo.Prediction<?> mockPrediction = mock(org.tribuo.Prediction.class);
-        doReturn(mockPrediction).when(mockTribuoModel).predict(ArgumentMatchers.any());
+        doReturn(mockPrediction).when((org.tribuo.Model) mockTribuoModel).predict(ArgumentMatchers.<org.tribuo.Example>any());
         when(mockTribuoModel.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
         
         // Mock file reading and deserialization
@@ -300,10 +290,8 @@ class XaiServiceTest {
         when(modelRepository.findByIdAndDatasetOwnerId(1L, testUser.getId()))
             .thenReturn(Optional.of(testModel));
         
-        // Mock model deserialization
-        @SuppressWarnings("unchecked")
         org.tribuo.Prediction<?> mockPrediction = mock(org.tribuo.Prediction.class);
-        doReturn(mockPrediction).when(mockTribuoModel).predict(ArgumentMatchers.any());
+        doReturn(mockPrediction).when((org.tribuo.Model) mockTribuoModel).predict(ArgumentMatchers.<org.tribuo.Example>any());
         when(mockTribuoModel.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
         
         // Mock file reading and deserialization

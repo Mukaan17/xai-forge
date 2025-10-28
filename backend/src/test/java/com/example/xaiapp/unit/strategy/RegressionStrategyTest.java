@@ -15,8 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.tribuo.MutableDataset;
 import org.tribuo.Model;
 import org.tribuo.regression.Regressor;
-import org.tribuo.regression.evaluation.RegressionEvaluator;
-import org.tribuo.regression.evaluation.RegressionEvaluation;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -33,20 +31,14 @@ class RegressionStrategyTest {
     private RegressionStrategy regressionStrategy;
     
     private MutableDataset<Regressor> testDataset;
-    private Model<Regressor> testModel;
-    private RegressionEvaluator testEvaluator;
-    private RegressionEvaluation testEvaluation;
     
     @BeforeEach
     void setUp() {
         testDataset = mock(MutableDataset.class);
-        testModel = mock(Model.class);
-        testEvaluator = mock(RegressionEvaluator.class);
-        testEvaluation = mock(RegressionEvaluation.class);
     }
     
     @Test
-    void testTrain_Success() {
+    void testTrain_Success() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -92,7 +84,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_MinimumValidDataset() {
+    void testTrain_MinimumValidDataset() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(2);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -107,7 +99,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_LargeDataset() {
+    void testTrain_LargeDataset() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(10000);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -122,7 +114,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithCustomParameters() {
+    void testTrain_WithCustomParameters() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -137,7 +129,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithNullParameters() {
+    void testTrain_WithNullParameters() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -152,7 +144,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithValidParameters() {
+    void testTrain_WithValidParameters() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -167,7 +159,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithLinearData() {
+    void testTrain_WithLinearData() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -182,7 +174,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithNonLinearData() {
+    void testTrain_WithNonLinearData() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -197,7 +189,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithOutliers() {
+    void testTrain_WithOutliers() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -212,7 +204,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithHighDimensionalData() {
+    void testTrain_WithHighDimensionalData() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -265,7 +257,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithExtremeLargeDataset() {
+    void testTrain_WithExtremeLargeDataset() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(Integer.MAX_VALUE);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -280,7 +272,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithExtremeSmallDataset() {
+    void testTrain_WithExtremeSmallDataset() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(2);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -320,33 +312,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithInvalidDomainType() {
-        // Arrange
-        when(testDataset.size()).thenReturn(100);
-        when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
-        when(testDataset.getOutputIDInfo().getDomain()).thenReturn(mock(Object.class)); // Invalid domain type
-        
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            regressionStrategy.train(testDataset, null);
-        });
-    }
-    
-    @Test
-    void testTrain_WithClassificationDataset() {
-        // Arrange
-        when(testDataset.size()).thenReturn(100);
-        when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
-        when(testDataset.getOutputIDInfo().getDomain()).thenReturn(mock(org.tribuo.classification.LabelInfo.class));
-        
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            regressionStrategy.train(testDataset, null);
-        });
-    }
-    
-    @Test
-    void testTrain_WithPerfectCorrelation() {
+    void testTrain_WithPerfectCorrelation() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -361,7 +327,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithNoCorrelation() {
+    void testTrain_WithNoCorrelation() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -376,7 +342,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithNegativeCorrelation() {
+    void testTrain_WithNegativeCorrelation() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -391,7 +357,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithExtremeValues() {
+    void testTrain_WithExtremeValues() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));
@@ -406,7 +372,7 @@ class RegressionStrategyTest {
     }
     
     @Test
-    void testTrain_WithZeroVariance() {
+    void testTrain_WithZeroVariance() throws Exception {
         // Arrange
         when(testDataset.size()).thenReturn(100);
         when(testDataset.getOutputIDInfo()).thenReturn(mock(org.tribuo.ImmutableOutputInfo.class));

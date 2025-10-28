@@ -76,6 +76,7 @@ public class AlgorithmFactory {
         java.util.List<String> allColumns = new java.util.ArrayList<>(featureNames);
         allColumns.add(targetVariable);
         
+        // Load the dataset with headers - use the correct method for CSV with headers
         DataSource<?> dataSource = csvLoader.loadDataSource(csvPath, targetVariable, allColumns.toArray(new String[0]));
         MutableDataset<?> dataset = new MutableDataset<>(dataSource);
         

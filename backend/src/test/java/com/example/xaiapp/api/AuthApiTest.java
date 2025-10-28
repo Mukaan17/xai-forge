@@ -12,12 +12,10 @@ import com.example.xaiapp.util.ApiTestBase;
 import com.example.xaiapp.util.TestConstants;
 import com.example.xaiapp.util.TestDataBuilder;
 import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
