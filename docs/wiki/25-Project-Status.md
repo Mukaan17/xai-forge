@@ -310,5 +310,5 @@ A comprehensive full-stack web application that allows users to upload tabular d
 
 ---
 
-**Next**: [[Changelog]] | **Previous**: [[Monitoring]]  
-**Related**: [[Changelog]], [[Roadmap]], [[Architecture]]
+**Next**: [[26-Project-Changelog]]  
+**Related**: [[26-Project-Changelog]], [[27-Project-Roadmap]], [[06-Developer-Architecture]]

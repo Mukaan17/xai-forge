@@ -109,5 +109,5 @@
 
 ---
 
-**Next**: [[Roadmap]] | **Previous**: [[Project Status|Project-Status]]  
-**Related**: [[Project Status|Project-Status]], [[Roadmap]], [[Architecture]]
+**Next**: [[27-Project-Roadmap]] ]]  
+**Related**: [[Project Status]], [[27-Project-Roadmap]], [[06-Developer-Architecture]]

@@ -120,5 +120,5 @@ public DatasetDto storeFile(MultipartFile file, Long userId) {
 
 ---
 
-**Next**: [[ADR-006-Design-Patterns]] | **Previous**: [[ADR-004-Excel-Test-Reporting]]  
-**Related**: [[Architecture]], [[Advanced Concepts|Advanced-Concepts]], [[Database]]
+**Next**: [[ADR-006-Design-Patterns]] ]]  
+**Related**: [[06-Developer-Architecture]], [[Advanced Concepts]], [[Database]]

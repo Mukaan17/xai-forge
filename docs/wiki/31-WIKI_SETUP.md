@@ -179,12 +179,12 @@ The `_Footer.md` file provides consistent footer information across all pages:
 
 **Essential Pages to Verify:**
 - [[Home]] - Main landing page
-- [[01-Getting-Started-Quick-Start|Quick Start]] - Getting started guide
-- [[04-User-Guide|User Guide]] - Complete user documentation
-- [[07-Developer-API-Reference|API Reference]] - REST API documentation
-- [[06-Developer-Architecture|Architecture]] - System architecture
-- [[19-Contributing|Contributing]] - Contribution guidelines
-- [[25-Project-Status|Project Status]] - Current project status
+- [[01-Getting-Started-Quick-Start]] - Getting started guide
+- [[04-User-Guide]] - Complete user documentation
+- [[07-Developer-API-Reference]] - REST API documentation
+- [[06-Developer-Architecture]] - System architecture
+- [[19-Contributing]] - Contribution guidelines
+- [[25-Project-Status]] - Current project status
 
 ---
 
@@ -322,8 +322,8 @@ ls -la
 - [Discussions](https://github.com/Mukaan17/xai-forge/discussions)
 
 ### Support
-- Check the [[Troubleshooting]] page for common issues
-- Review the [[FAQ]] for frequently asked questions
+- Check the [[23-Operations-Troubleshooting]] page for common issues
+- Review the [[05-User-FAQ]] for frequently asked questions
 - Contact the project maintainer for additional help
 
 ---
@@ -332,5 +332,5 @@ ls -la
 
 ---
 
-**Next**: [[Home]] | **Previous**: [[Glossary]]  
-**Related**: [[Project Status|Project-Status]], [[Contributing]], [[Architecture]]
+**Next**: [[Home]] ]]  
+**Related**: [[Project Status]], [[19-Contributing]], [[06-Developer-Architecture]]

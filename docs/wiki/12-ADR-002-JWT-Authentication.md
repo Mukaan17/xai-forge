@@ -77,5 +77,5 @@ We will use **JWT (JSON Web Tokens)** for authentication in the XAI-Forge applic
 
 ---
 
-**Next**: [[ADR-003-Async-Model-Training]] | **Previous**: [[ADR-001-Tribuo-ML-Library]]  
-**Related**: [[Architecture]], [[Security]], [[API Reference|API-Reference]]
+**Next**: [[ADR-003-Async-Model-Training]] ]]  
+**Related**: [[06-Developer-Architecture]], [[Security]], [[API Reference]]

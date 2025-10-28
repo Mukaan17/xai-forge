@@ -361,5 +361,5 @@ The test suite provides a solid foundation for maintaining code quality and ensu
 
 ---
 
-**Next**: [[Contributing]] | **Previous**: [[Testing Guide|Testing-Guide]]  
-**Related**: [[Testing Guide|Testing-Guide]], [[Contributing]], [[Development Setup|Development-Setup]]
+**Next**: [[19-Contributing]] ]]  
+**Related**: [[Testing Guide]], [[19-Contributing]], [[Development Setup]]

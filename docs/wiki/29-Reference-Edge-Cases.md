@@ -589,5 +589,5 @@ This comprehensive edge case handling ensures the application is robust, secure,
 
 ---
 
-**Next**: [[Glossary]] | **Previous**: [[Technology Stack|Technology-Stack]]  
-**Related**: [[Troubleshooting]], [[Security]], [[Architecture]]
+**Next**: [[30-Reference-Glossary]] ]]  
+**Related**: [[23-Operations-Troubleshooting]], [[Security]], [[06-Developer-Architecture]]

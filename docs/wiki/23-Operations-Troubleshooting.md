@@ -389,5 +389,5 @@ curl http://localhost:8080/actuator/health
 
 ---
 
-**Next**: [[Monitoring]] | **Previous**: [[Deployment]]  
-**Related**: [[Deployment]], [[Monitoring]], [[FAQ]]
+**Next**: [[24-Operations-Monitoring]] ]]  
+**Related**: [[22-Operations-Deployment]], [[24-Operations-Monitoring]], [[05-User-FAQ]]

@@ -294,5 +294,5 @@ psql -h localhost -U xai_user -d xai_db -c "SELECT version();"
 
 ---
 
-**Next**: [[User Guide|User-Guide]] | **Previous**: [[Installation]]  
-**Related**: [[Troubleshooting]], [[Deployment]], [[Security]]
+**Next**: [[User Guide]] | **Previous**: [[02-Getting-Started-Installation]]  
+**Related**: [[23-Operations-Troubleshooting]], [[22-Operations-Deployment]], [[Security]]

@@ -873,5 +873,5 @@ The implementation includes proper error handling, security considerations, perf
 
 ---
 
-**Next**: [[Design Patterns|Design-Patterns]] | **Previous**: [[API Reference|API-Reference]]  
-**Related**: [[Architecture]], [[Testing Guide|Testing-Guide]], [[Contributing]]
+**Next**: [[Design Patterns]] | **Previous**: [[API Reference]]  
+**Related**: [[06-Developer-Architecture]], [[Testing Guide]], [[19-Contributing]]

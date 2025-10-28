@@ -169,12 +169,12 @@ Each ADR follows a consistent structure:
 
 ## Related Documentation
 
-- [[Architecture]] - Overall system architecture
-- [[Advanced Concepts|Advanced-Concepts]] - Technical implementation details
-- [[Design Patterns|Design-Patterns]] - Pattern implementations
-- [[Technology Stack|Technology-Stack]] - Complete technology overview
+- [[06-Developer-Architecture]] - Overall system architecture
+- [[Advanced Concepts]] - Technical implementation details
+- [[Design Patterns]] - Pattern implementations
+- [[Technology Stack]] - Complete technology overview
 
 ---
 
-**Next**: [[Testing Guide|Testing-Guide]] | **Previous**: [[Design Patterns|Design-Patterns]]  
-**Related**: [[Architecture]], [[Advanced Concepts|Advanced-Concepts]], [[Design Patterns|Design-Patterns]]
+**Next**: [[Testing Guide]] | **Previous**: [[Design Patterns]]  
+**Related**: [[06-Developer-Architecture]], [[Advanced Concepts]], [[Design Patterns]]

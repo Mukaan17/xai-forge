@@ -644,5 +644,5 @@ This comprehensive testing guide ensures that the XAI-Forge application maintain
 
 ---
 
-**Next**: [[Test Coverage|Test-Coverage]] | **Previous**: [[ADR-006-Design-Patterns]]  
-**Related**: [[Test Coverage|Test-Coverage]], [[Contributing]], [[Development Setup|Development-Setup]]
+**Next**: [[Test Coverage]] | **Previous**: [[ADR-006-Design-Patterns]]  
+**Related**: [[Test Coverage]], [[19-Contributing]], [[Development Setup]]

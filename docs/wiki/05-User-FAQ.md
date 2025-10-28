@@ -436,5 +436,5 @@ This depends on your server resources:
 
 ---
 
-**Next**: [[Architecture]] | **Previous**: [[User Guide|User-Guide]]  
-**Related**: [[Troubleshooting]], [[Installation]], [[Configuration]]
+**Next**: [[06-Developer-Architecture]] ]]  
+**Related**: [[23-Operations-Troubleshooting]], [[02-Getting-Started-Installation]], [[03-Getting-Started-Configuration]]

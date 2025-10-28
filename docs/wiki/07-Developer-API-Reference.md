@@ -703,5 +703,5 @@ const trainModel = async (modelData) => {
 
 ---
 
-**Next**: [[Advanced Concepts|Advanced-Concepts]] | **Previous**: [[Architecture]]  
-**Related**: [[User Guide|User-Guide]], [[Testing Guide|Testing-Guide]], [[Troubleshooting]]
+**Next**: [[Advanced Concepts]] | **Previous**: [[06-Developer-Architecture]]  
+**Related**: [[User Guide]], [[Testing Guide]], [[23-Operations-Troubleshooting]]

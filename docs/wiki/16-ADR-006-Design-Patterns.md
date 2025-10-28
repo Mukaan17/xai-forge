@@ -152,5 +152,5 @@ public abstract class AbstractModelService {
 
 ---
 
-**Next**: [[Testing Guide|Testing-Guide]] | **Previous**: [[ADR-005-Transaction-Isolation]]  
-**Related**: [[Design Patterns|Design-Patterns]], [[Advanced Concepts|Advanced-Concepts]], [[Architecture]]
+**Next**: [[Testing Guide]] | **Previous**: [[ADR-005-Transaction-Isolation]]  
+**Related**: [[Design Patterns]], [[Advanced Concepts]], [[06-Developer-Architecture]]

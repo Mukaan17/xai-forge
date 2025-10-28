@@ -71,5 +71,5 @@ We will use **Tribuo** (Oracle Labs) as the primary machine learning library for
 
 ---
 
-**Next**: [[ADR-002-JWT-Authentication]] | **Previous**: [[Architecture Decisions|Architecture-Decisions]]  
-**Related**: [[Architecture]], [[Technology Stack|Technology-Stack]], [[Advanced Concepts|Advanced-Concepts]]
+**Next**: [[ADR-002-JWT-Authentication]] ]]  
+**Related**: [[06-Developer-Architecture]], [[Technology Stack]], [[Advanced Concepts]]

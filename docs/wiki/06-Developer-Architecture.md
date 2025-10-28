@@ -355,5 +355,5 @@ public class GlobalExceptionHandler {
 
 ---
 
-**Next**: [[API Reference|API-Reference]] | **Previous**: [[FAQ]]  
-**Related**: [[Advanced Concepts|Advanced-Concepts]], [[Design Patterns|Design-Patterns]], [[Technology Stack|Technology-Stack]]
+**Next**: [[API Reference]] | **Previous**: [[05-User-FAQ]]  
+**Related**: [[Advanced Concepts]], [[Design Patterns]], [[Technology Stack]]

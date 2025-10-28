@@ -52,7 +52,7 @@ We welcome contributions from the community! There are many ways to contribute t
 
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally
-3. **Set up the development environment** (see [[Development Setup|Development-Setup]])
+3. **Set up the development environment** (see [[Development Setup]])
 4. **Create a new branch** for your changes
 5. **Make your changes** following our coding standards
 6. **Test your changes** thoroughly
@@ -510,10 +510,10 @@ refactor: improve error handling in controllers
 ## Resources
 
 ### Documentation
-- [[Development Setup|Development-Setup]] - Detailed setup instructions
-- [[Coding Standards|Coding-Standards]] - Comprehensive coding guidelines
-- [[Testing Guide|Testing-Guide]] - Testing requirements and examples
-- [[API Reference|API-Reference]] - API documentation
+- [[Development Setup]] - Detailed setup instructions
+- [[Coding Standards]] - Comprehensive coding guidelines
+- [[Testing Guide]] - Testing requirements and examples
+- [[API Reference]] - API documentation
 
 ### Tools
 - [GitHub Issues](https://github.com/Mukaan17/xai-forge/issues) - Issue tracking
@@ -531,5 +531,5 @@ Thank you for contributing to XAI-Forge! Your contributions help make this proje
 
 ---
 
-**Next**: [[Development Setup|Development-Setup]] | **Previous**: [[Test Coverage|Test-Coverage]]  
-**Related**: [[Development Setup|Development-Setup]], [[Coding Standards|Coding-Standards]], [[Testing Guide|Testing-Guide]]
+**Next**: [[Development Setup]] | **Previous**: [[Test Coverage]]  
+**Related**: [[Development Setup]], [[Coding Standards]], [[Testing Guide]]

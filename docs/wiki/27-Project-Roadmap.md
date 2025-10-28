@@ -269,5 +269,5 @@
 
 ---
 
-**Next**: [[Technology Stack|Technology-Stack]] | **Previous**: [[Changelog]]  
-**Related**: [[Project Status|Project-Status]], [[Changelog]], [[Architecture]]
+**Next**: [[Technology Stack]] | **Previous**: [[26-Project-Changelog]]  
+**Related**: [[Project Status]], [[26-Project-Changelog]], [[06-Developer-Architecture]]

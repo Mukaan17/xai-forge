@@ -229,5 +229,5 @@ tar -czf uploads_backup_$(date +%Y%m%d_%H%M%S).tar.gz uploads/
 
 ---
 
-**Next**: [[Troubleshooting]] | **Previous**: [[Coding Standards|Coding-Standards]]  
-**Related**: [[Troubleshooting]], [[Monitoring]], [[Configuration]]
+**Next**: [[23-Operations-Troubleshooting]] ]]  
+**Related**: [[23-Operations-Troubleshooting]], [[24-Operations-Monitoring]], [[03-Getting-Started-Configuration]]

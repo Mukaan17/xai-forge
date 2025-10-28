@@ -96,5 +96,5 @@ We will implement **Excel-based test reporting** using Apache POI to generate st
 
 ---
 
-**Next**: [[ADR-005-Transaction-Isolation]] | **Previous**: [[ADR-003-Async-Model-Training]]  
-**Related**: [[Testing Guide|Testing-Guide]], [[Test Coverage|Test-Coverage]], [[Advanced Concepts|Advanced-Concepts]]
+**Next**: [[ADR-005-Transaction-Isolation]] ]]  
+**Related**: [[Testing Guide]], [[Test Coverage]], [[Advanced Concepts]]

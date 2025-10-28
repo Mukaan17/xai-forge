@@ -278,5 +278,5 @@
 
 ---
 
-**Next**: [[Edge Cases|Edge-Cases]] | **Previous**: [[Roadmap]]  
-**Related**: [[Architecture]], [[Advanced Concepts|Advanced-Concepts]], [[Installation]]
+**Next**: [[Edge Cases]] | **Previous**: [[27-Project-Roadmap]]  
+**Related**: [[06-Developer-Architecture]], [[Advanced Concepts]], [[02-Getting-Started-Installation]]

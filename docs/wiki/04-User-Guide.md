@@ -323,5 +323,5 @@ Meaning: Higher tenure increased the likelihood of the predicted outcome
 
 ---
 
-**Next**: [[FAQ]] | **Previous**: [[Configuration]]  
-**Related**: [[API Reference|API-Reference]], [[Troubleshooting]], [[Architecture]]
+**Next**: [[05-User-FAQ]] ]]  
+**Related**: [[API Reference]], [[23-Operations-Troubleshooting]], [[06-Developer-Architecture]]

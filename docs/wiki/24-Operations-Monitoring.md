@@ -269,5 +269,5 @@
 
 ---
 
-**Next**: [[Project Status|Project-Status]] | **Previous**: [[Troubleshooting]]  
-**Related**: [[Troubleshooting]], [[Deployment]], [[Architecture]]
+**Next**: [[Project Status]] | **Previous**: [[23-Operations-Troubleshooting]]  
+**Related**: [[23-Operations-Troubleshooting]], [[22-Operations-Deployment]], [[06-Developer-Architecture]]

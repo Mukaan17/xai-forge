@@ -185,12 +185,12 @@ mvn clean install -DskipTests
 
 Once you have the application running:
 
-1. **[[User Guide|User-Guide]]** - Complete walkthrough of features
-2. **[[Installation]]** - Detailed setup instructions
-3. **[[Configuration]]** - Environment and security configuration
-4. **[[API Reference|API-Reference]]** - REST API documentation
+1. **[[User Guide]]** - Complete walkthrough of features
+2. **[[02-Getting-Started-Installation]]** - Detailed setup instructions
+3. **[[03-Getting-Started-Configuration]]** - Environment and security configuration
+4. **[[API Reference]]** - REST API documentation
 
 ---
 
-**Next**: [[Installation]] | **Previous**: [[Home]]  
-**Related**: [[Configuration]], [[Troubleshooting]], [[FAQ]]
+**Next**: [[02-Getting-Started-Installation]] ]]  
+**Related**: [[03-Getting-Started-Configuration]], [[23-Operations-Troubleshooting]], [[05-User-FAQ]]

@@ -192,5 +192,5 @@ test('should handle file selection', async () => {
 
 ---
 
-**Next**: [[Deployment]] | **Previous**: [[Development Setup|Development-Setup]]  
-**Related**: [[Contributing]], [[Development Setup|Development-Setup]], [[Testing Guide|Testing-Guide]]
+**Next**: [[22-Operations-Deployment]] ]]  
+**Related**: [[19-Contributing]], [[Development Setup]], [[Testing Guide]]

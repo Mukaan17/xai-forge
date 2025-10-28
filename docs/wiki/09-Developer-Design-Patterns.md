@@ -512,5 +512,5 @@ MLModel model = classificationModelService.trainModel(request, userId);
 
 ---
 
-**Next**: [[Architecture Decisions|Architecture-Decisions]] | **Previous**: [[Advanced Concepts|Advanced-Concepts]]  
-**Related**: [[Architecture]], [[Advanced Concepts|Advanced-Concepts]], [[Contributing]]
+**Next**: [[Architecture Decisions]] | **Previous**: [[Advanced Concepts]]  
+**Related**: [[06-Developer-Architecture]], [[Advanced Concepts]], [[19-Contributing]]

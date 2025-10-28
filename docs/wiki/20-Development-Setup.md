@@ -529,10 +529,10 @@ NODE_ENV=production npm start
 ## Additional Resources
 
 ### Documentation
-- [[Coding Standards|Coding-Standards]] - Coding guidelines
-- [[Testing Guide|Testing-Guide]] - Testing requirements
-- [[API Reference|API-Reference]] - API documentation
-- [[Architecture]] - System architecture
+- [[Coding Standards]] - Coding guidelines
+- [[Testing Guide]] - Testing requirements
+- [[API Reference]] - API documentation
+- [[06-Developer-Architecture]] - System architecture
 
 ### Tools
 - [Maven Documentation](https://maven.apache.org/guides/)
@@ -547,5 +547,5 @@ NODE_ENV=production npm start
 
 ---
 
-**Next**: [[Coding Standards|Coding-Standards]] | **Previous**: [[Contributing]]  
-**Related**: [[Contributing]], [[Coding Standards|Coding-Standards]], [[Testing Guide|Testing-Guide]]
+**Next**: [[Coding Standards]] | **Previous**: [[19-Contributing]]  
+**Related**: [[19-Contributing]], [[Coding Standards]], [[Testing Guide]]

@@ -364,12 +364,12 @@ psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE xai_db TO xai_user;"
 
 After successful installation:
 
-1. **[[Configuration]]** - Detailed configuration options
-2. **[[User Guide|User-Guide]]** - Complete user walkthrough
-3. **[[API Reference|API-Reference]]** - REST API documentation
-4. **[[Development Setup|Development-Setup]]** - Developer environment setup
+1. **[[03-Getting-Started-Configuration]]** - Detailed configuration options
+2. **[[User Guide]]** - Complete user walkthrough
+3. **[[API Reference]]** - REST API documentation
+4. **[[Development Setup]]** - Developer environment setup
 
 ---
 
-**Next**: [[Configuration]] | **Previous**: [[Quick Start|Quick-Start]]  
-**Related**: [[Troubleshooting]], [[Development Setup|Development-Setup]], [[FAQ]]
+**Next**: [[03-Getting-Started-Configuration]] ]]  
+**Related**: [[23-Operations-Troubleshooting]], [[Development Setup]], [[05-User-FAQ]]

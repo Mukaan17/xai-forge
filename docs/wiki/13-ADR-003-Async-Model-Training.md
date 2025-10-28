@@ -94,5 +94,5 @@ public Executor mlTrainingExecutor() {
 
 ---
 
-**Next**: [[ADR-004-Excel-Test-Reporting]] | **Previous**: [[ADR-002-JWT-Authentication]]  
-**Related**: [[Architecture]], [[Advanced Concepts|Advanced-Concepts]], [[Testing Guide|Testing-Guide]]
+**Next**: [[ADR-004-Excel-Test-Reporting]] ]]  
+**Related**: [[06-Developer-Architecture]], [[Advanced Concepts]], [[Testing Guide]]
