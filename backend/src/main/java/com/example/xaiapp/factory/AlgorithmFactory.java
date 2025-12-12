@@ -59,28 +59,23 @@ public class AlgorithmFactory {
     }
     
     /**
-     * Load dataset from CSV file using the appropriate loader
+     * Load dataset from CSV file using auto-detection of columns from CSV header
      * 
      * @param csvPath The path to the CSV file
      * @param targetVariable The target variable name
-     * @param featureNames The feature names
      * @param modelType The model type
      * @return The loaded dataset
      * @throws Exception if loading fails
      */
     public MutableDataset<?> loadDatasetFromCSV(Path csvPath, String targetVariable, 
-                                               java.util.List<String> featureNames, 
                                                MLModel.ModelType modelType) throws Exception {
-        log.info("Loading dataset from CSV: {}", csvPath);
+        log.info("Loading dataset from CSV: {} with auto-detected columns, target variable: {}", csvPath, targetVariable);
         
         CSVLoader<?> csvLoader = createCSVLoader(modelType);
         
-        // Add target variable to feature names for loading
-        java.util.List<String> allColumns = new java.util.ArrayList<>(featureNames);
-        allColumns.add(targetVariable);
-        
-        // Load the dataset with headers - use the correct method for CSV with headers
-        DataSource<?> dataSource = csvLoader.loadDataSource(csvPath, targetVariable, allColumns.toArray(new String[0]));
+        // Use auto-detect method: reads header automatically, treats all columns except targetVariable as features
+        // This avoids column name matching issues (case sensitivity, whitespace, etc.)
+        DataSource<?> dataSource = csvLoader.loadDataSource(csvPath, targetVariable.trim());
         MutableDataset<?> dataset = new MutableDataset<>(dataSource);
         
         log.info("Dataset loaded successfully: {} examples, {} features", 

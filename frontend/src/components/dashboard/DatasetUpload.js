@@ -27,60 +27,80 @@ import {
 import {
   CloudUpload,
   Delete,
-  Visibility,
 } from '@mui/icons-material';
-import { datasetAPI } from '../../api/api';
+import { datasetsAPI } from '../../api/datasets';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
-const DatasetUpload = ({ datasets, onDatasetUploaded, loading }) => {
+const DatasetUpload = ({ onDatasetUploaded }) => {
+  const queryClient = useQueryClient();
   const [file, setFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [deleteDialog, setDeleteDialog] = useState({ open: false, dataset: null });
+
+  // Fetch datasets using React Query
+  const { data: datasets = [], isLoading: loading, error: fetchError } = useQuery({
+    queryKey: ['datasets'],
+    queryFn: () => datasetsAPI.getAll(),
+    select: (response) => {
+      // Handle different response structures
+      if (Array.isArray(response)) return response;
+      if (response?.content) return response.content;
+      if (response?.data) return Array.isArray(response.data) ? response.data : [];
+      return [];
+    },
+  });
+
+  // Upload mutation
+  const uploadMutation = useMutation({
+    mutationFn: (file) => datasetsAPI.upload(file),
+    onSuccess: () => {
+      toast.success('Dataset uploaded successfully!');
+      setFile(null);
+      queryClient.invalidateQueries({ queryKey: ['datasets'] });
+      if (onDatasetUploaded) onDatasetUploaded();
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Upload failed');
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id) => datasetsAPI.delete(id),
+    onSuccess: () => {
+      toast.success('Dataset deleted successfully!');
+      queryClient.invalidateQueries({ queryKey: ['datasets'] });
+      setDeleteDialog({ open: false, dataset: null });
+      if (onDatasetUploaded) onDatasetUploaded();
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Delete failed');
+    },
+  });
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
     if (selectedFile) {
       if (selectedFile.type !== 'text/csv' && !selectedFile.name.endsWith('.csv')) {
-        setError('Please select a CSV file');
+        toast.error('Please select a CSV file');
         return;
       }
       setFile(selectedFile);
-      setError('');
     }
   };
 
-  const handleUpload = async () => {
+  const handleUpload = () => {
     if (!file) {
-      setError('Please select a file');
+      toast.error('Please select a file');
       return;
     }
-
-    setUploading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      await datasetAPI.upload(file);
-      setSuccess('Dataset uploaded successfully!');
-      setFile(null);
-      onDatasetUploaded();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Upload failed');
-    } finally {
-      setUploading(false);
-    }
+    uploadMutation.mutate(file);
   };
 
-  const handleDelete = async (dataset) => {
-    try {
-      await datasetAPI.delete(dataset.id);
-      setSuccess('Dataset deleted successfully!');
-      onDatasetUploaded();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Delete failed');
+  const handleDelete = (dataset) => {
+    if (dataset?.id) {
+      deleteMutation.mutate(dataset.id);
     }
-    setDeleteDialog({ open: false, dataset: null });
   };
 
   const formatDate = (dateString) => {
@@ -93,15 +113,9 @@ const DatasetUpload = ({ datasets, onDatasetUploaded, loading }) => {
         Dataset Management
       </Typography>
 
-      {error && (
+      {fetchError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {success}
+          {fetchError.response?.data?.message || 'Failed to load datasets'}
         </Alert>
       )}
 
@@ -123,7 +137,7 @@ const DatasetUpload = ({ datasets, onDatasetUploaded, loading }) => {
               variant="outlined"
               component="span"
               startIcon={<CloudUpload />}
-              disabled={uploading}
+              disabled={uploadMutation.isPending}
             >
               Choose CSV File
             </Button>
@@ -136,10 +150,10 @@ const DatasetUpload = ({ datasets, onDatasetUploaded, loading }) => {
           <Button
             variant="contained"
             onClick={handleUpload}
-            disabled={!file || uploading}
-            startIcon={uploading ? <CircularProgress size={20} /> : <CloudUpload />}
+            disabled={!file || uploadMutation.isPending}
+            startIcon={uploadMutation.isPending ? <CircularProgress size={20} /> : <CloudUpload />}
           >
-            {uploading ? 'Uploading...' : 'Upload'}
+            {uploadMutation.isPending ? 'Uploading...' : 'Upload'}
           </Button>
         </Box>
       </Paper>
@@ -171,12 +185,12 @@ const DatasetUpload = ({ datasets, onDatasetUploaded, loading }) => {
                   </TableCell>
                 </TableRow>
               ) : (
-                datasets.map((dataset) => (
+                datasets && Array.isArray(datasets) && datasets.map((dataset) => (
                   <TableRow key={dataset.id}>
-                    <TableCell>{dataset.fileName}</TableCell>
-                    <TableCell>{formatDate(dataset.uploadDate)}</TableCell>
-                    <TableCell>{dataset.rowCount}</TableCell>
-                    <TableCell>{dataset.headers?.length || 0}</TableCell>
+                    <TableCell>{dataset.fileName || dataset.originalFilename || dataset.name || 'Unknown'}</TableCell>
+                    <TableCell>{formatDate(dataset.createdAt || dataset.uploadDate)}</TableCell>
+                    <TableCell>{dataset.rowCount || 0}</TableCell>
+                    <TableCell>{dataset.columnCount || dataset.headers?.length || 0}</TableCell>
                     <TableCell>
                       <IconButton
                         color="error"
@@ -201,7 +215,7 @@ const DatasetUpload = ({ datasets, onDatasetUploaded, loading }) => {
         <DialogTitle>Delete Dataset</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete "{deleteDialog.dataset?.fileName}"? 
+            Are you sure you want to delete "{deleteDialog.dataset?.fileName || deleteDialog.dataset?.originalFilename || deleteDialog.dataset?.name}"? 
             This action cannot be undone.
           </Typography>
         </DialogContent>

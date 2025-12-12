@@ -15,7 +15,6 @@ import {
   MenuItem,
   TextField,
   Button,
-  Alert,
   CircularProgress,
   Grid,
   Card,
@@ -23,47 +22,52 @@ import {
 } from '@mui/material';
 import {
   Psychology,
-  Visibility,
 } from '@mui/icons-material';
-import { modelAPI } from '../../api/api';
+import { modelsAPI } from '../../api/models';
+import { predictionsAPI } from '../../api/predictions';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import XaiDisplay from './XaiDisplay';
 
-const Predictor = ({ models, loading }) => {
+const Predictor = () => {
   const [selectedModel, setSelectedModel] = useState('');
-  const [modelDetails, setModelDetails] = useState(null);
   const [inputData, setInputData] = useState({});
   const [prediction, setPrediction] = useState(null);
   const [explanation, setExplanation] = useState(null);
-  const [predicting, setPredicting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
+  // Fetch ready models
+  const { data: models = [] } = useQuery({
+    queryKey: ['models', 'ready'],
+    queryFn: () => modelsAPI.getReadyModels(),
+    select: (response) => {
+      if (Array.isArray(response)) return response;
+      if (response?.content) return response.content;
+      if (response?.data) return Array.isArray(response.data) ? response.data : [];
+      return [];
+    },
+  });
+
+  // Fetch model details when selected
+  const { data: modelDetails } = useQuery({
+    queryKey: ['model', selectedModel],
+    queryFn: () => modelsAPI.getById(selectedModel),
+    enabled: !!selectedModel,
+    select: (response) => response?.data || response,
+  });
+
+  // Initialize input data when model details change
   useEffect(() => {
-    if (selectedModel) {
-      fetchModelDetails();
-    } else {
-      setModelDetails(null);
-      setInputData({});
-      setPrediction(null);
-      setExplanation(null);
-    }
-  }, [selectedModel]);
-
-  const fetchModelDetails = async () => {
-    try {
-      const response = await modelAPI.getById(selectedModel);
-      setModelDetails(response.data);
-      
-      // Initialize input data with empty values
+    if (modelDetails) {
+      const features = modelDetails.featureColumns || modelDetails.featureNames || [];
       const initialInputData = {};
-      response.data.featureNames.forEach(feature => {
+      features.forEach(feature => {
         initialInputData[feature] = '';
       });
       setInputData(initialInputData);
-    } catch (err) {
-      setError('Failed to load model details');
+      setPrediction(null);
+      setExplanation(null);
     }
-  };
+  }, [modelDetails]);
 
   const handleInputChange = (feature, value) => {
     setInputData(prev => ({
@@ -72,33 +76,32 @@ const Predictor = ({ models, loading }) => {
     }));
   };
 
-  const handlePredict = async () => {
+  // Prediction mutation
+  const predictMutation = useMutation({
+    mutationFn: (inputData) => predictionsAPI.predict(selectedModel, inputData),
+    onSuccess: (response) => {
+      const data = response?.data || response;
+      setPrediction(data);
+      // Extract explanation from prediction response if available
+      if (data.explanation) {
+        setExplanation(data.explanation);
+      }
+      toast.success('Prediction completed successfully!');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Prediction failed');
+    },
+  });
+
+  const handlePredict = () => {
     // Validate input data
     const missingFields = Object.entries(inputData).filter(([key, value]) => !value);
     if (missingFields.length > 0) {
-      setError('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
       return;
     }
 
-    setPredicting(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      // Make prediction and get explanation
-      const [predictionResponse, explanationResponse] = await Promise.all([
-        modelAPI.predict(selectedModel, inputData),
-        modelAPI.explain(selectedModel, inputData),
-      ]);
-
-      setPrediction(predictionResponse.data);
-      setExplanation(explanationResponse.data);
-      setSuccess('Prediction completed successfully!');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Prediction failed');
-    } finally {
-      setPredicting(false);
-    }
+    predictMutation.mutate(inputData);
   };
 
   const formatDate = (dateString) => {
@@ -111,17 +114,6 @@ const Predictor = ({ models, loading }) => {
         Make Predictions & Get Explanations
       </Typography>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {success}
-        </Alert>
-      )}
 
       <Grid container spacing={3}>
         {/* Model Selection and Input */}
@@ -140,7 +132,7 @@ const Predictor = ({ models, loading }) => {
               >
                 {models.map((model) => (
                   <MenuItem key={model.id} value={model.id}>
-                    {model.modelName} ({model.modelType})
+                    {model.name || model.modelName} ({model.modelType || model.type})
                   </MenuItem>
                 ))}
               </Select>
@@ -154,19 +146,19 @@ const Predictor = ({ models, loading }) => {
                       Model Information
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Name:</strong> {modelDetails.modelName}
+                      <strong>Name:</strong> {modelDetails.name || modelDetails.modelName}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Type:</strong> {modelDetails.modelType}
+                      <strong>Type:</strong> {modelDetails.modelType || modelDetails.type}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Target Variable:</strong> {modelDetails.targetVariable}
+                      <strong>Target Variable:</strong> {modelDetails.targetColumn || modelDetails.targetVariable}
                     </Typography>
                     <Typography variant="body2">
                       <strong>Accuracy:</strong> {modelDetails.accuracy ? (modelDetails.accuracy * 100).toFixed(2) + '%' : 'N/A'}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Trained:</strong> {formatDate(modelDetails.trainingDate)}
+                      <strong>Trained:</strong> {formatDate(modelDetails.trainedAt || modelDetails.trainingDate)}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -175,7 +167,7 @@ const Predictor = ({ models, loading }) => {
                   Input Data
                 </Typography>
 
-                {modelDetails.featureNames.map((feature) => (
+                {(modelDetails.featureColumns || modelDetails.featureNames || []).map((feature) => (
                   <TextField
                     key={feature}
                     fullWidth
@@ -191,11 +183,11 @@ const Predictor = ({ models, loading }) => {
                 <Button
                   variant="contained"
                   onClick={handlePredict}
-                  disabled={predicting}
-                  startIcon={predicting ? <CircularProgress size={20} /> : <Psychology />}
+                  disabled={predictMutation.isPending}
+                  startIcon={predictMutation.isPending ? <CircularProgress size={20} /> : <Psychology />}
                   fullWidth
                 >
-                  {predicting ? 'Predicting...' : 'Make Prediction & Get Explanation'}
+                  {predictMutation.isPending ? 'Predicting...' : 'Make Prediction & Get Explanation'}
                 </Button>
               </>
             )}
@@ -208,7 +200,7 @@ const Predictor = ({ models, loading }) => {
             <XaiDisplay
               prediction={prediction}
               explanation={explanation}
-              modelType={modelDetails?.modelType}
+              modelType={modelDetails?.modelType || modelDetails?.type}
             />
           )}
         </Grid>

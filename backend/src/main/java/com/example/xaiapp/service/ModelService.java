@@ -25,6 +25,7 @@ import org.tribuo.data.csv.CSVLoader;
 import org.tribuo.DataSource;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
+import org.tribuo.impl.ArrayExample;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,27 +115,163 @@ public class ModelService {
         mlModel.setDataset(dataset);
         mlModel.setAccuracy(calculateAccuracy(trainedModel, tribuoDataset));
         
+        // Set algorithm based on model type
+        if (modelType == MLModel.ModelType.CLASSIFICATION) {
+            mlModel.setAlgorithm("LOGISTIC_REGRESSION");
+        } else {
+            mlModel.setAlgorithm("LINEAR_REGRESSION");
+        }
+        
+        // Set status to READY after successful training
+        mlModel.setStatus(MLModel.ModelStatus.READY);
+        
         return modelRepository.save(mlModel);
     }
     
     private MutableDataset<?> loadDatasetFromCSV(Dataset dataset, TrainRequestDto request) throws Exception {
         Path csvPath = Paths.get(dataset.getFilePath());
         
-        // Create feature list
-        List<String> featureNames = new ArrayList<>(request.getFeatureNames());
-        featureNames.add(request.getTargetVariable());
+        // Tribuo's CSVLoader requires ALL column names from the CSV file
+        // Get all headers from the dataset (which were parsed during upload)
+        List<String> allColumnNames = new ArrayList<>(dataset.getHeaders());
         
-        // Load data based on model type
-        if (request.getModelType().equals("CLASSIFICATION")) {
-            LabelFactory labelFactory = new LabelFactory();
-            CSVLoader<Label> csvLoader = new CSVLoader<>(labelFactory);
-            DataSource<Label> dataSource = csvLoader.loadDataSource(csvPath, request.getTargetVariable(), featureNames.toArray(new String[0]));
-            return new MutableDataset<>(dataSource);
-        } else {
-            // For regression, use AlgorithmFactory to load data
-            return algorithmFactory.loadDatasetFromCSV(csvPath, request.getTargetVariable(), 
-                request.getFeatureNames(), MLModel.ModelType.REGRESSION);
+        // Validate that target variable and selected features exist in the dataset
+        if (!allColumnNames.contains(request.getTargetVariable())) {
+            throw new IllegalArgumentException("Target variable '" + request.getTargetVariable() + "' not found in dataset. Available columns: " + allColumnNames);
         }
+        
+        for (String featureName : request.getFeatureNames()) {
+            if (!allColumnNames.contains(featureName)) {
+                throw new IllegalArgumentException("Feature '" + featureName + "' not found in dataset. Available columns: " + allColumnNames);
+            }
+        }
+        
+        // Load data with auto-detection of columns from CSV header
+        // This avoids column name matching issues (case sensitivity, whitespace, etc.)
+        MutableDataset<?> fullDataset;
+        try {
+            if (request.getModelType().equals("CLASSIFICATION")) {
+                LabelFactory labelFactory = new LabelFactory();
+                CSVLoader<Label> csvLoader = new CSVLoader<>(labelFactory);
+                // Use auto-detect method: reads header automatically, treats all columns except targetVariable as features
+                log.info("Loading CSV with auto-detected columns, target variable: {}", request.getTargetVariable());
+                DataSource<Label> dataSource = csvLoader.loadDataSource(csvPath, request.getTargetVariable().trim());
+                fullDataset = new MutableDataset<>(dataSource);
+            } else {
+                // For regression, use AlgorithmFactory with auto-detect
+                fullDataset = algorithmFactory.loadDatasetFromCSV(csvPath, request.getTargetVariable().trim(), 
+                    MLModel.ModelType.REGRESSION);
+            }
+            log.info("CSV loaded successfully: {} examples", fullDataset.size());
+        } catch (NumberFormatException e) {
+            log.error("Error parsing CSV data: {}", e.getMessage(), e);
+            throw new IllegalArgumentException(
+                "Error parsing CSV data. Please ensure all feature columns contain numeric values. " +
+                "Non-numeric values found: " + e.getMessage() + 
+                ". Make sure your CSV has numeric data in all feature columns (except the target variable for classification).", e);
+        } catch (IllegalArgumentException e) {
+            log.error("Error loading dataset: {}", e.getMessage(), e);
+            if (e.getMessage() != null && e.getMessage().contains("input string")) {
+                throw new IllegalArgumentException(
+                    "Error parsing CSV data. The CSV contains non-numeric values where numbers are expected. " +
+                    "Please check that all feature columns contain only numeric values. " +
+                    "Error details: " + e.getMessage(), e);
+            }
+            throw e;
+        } catch (Exception e) {
+            log.error("Error loading dataset from CSV: {}", e.getMessage(), e);
+            throw new IllegalArgumentException("Error loading dataset: " + e.getMessage(), e);
+        }
+        
+        // Filter dataset to only include selected features (and target variable)
+        return filterDatasetToSelectedFeatures(fullDataset, request.getFeatureNames(), request.getTargetVariable(), request.getModelType());
+    }
+    
+    /**
+     * Filter dataset to only include selected features and target variable
+     * Creates a new dataset with only the features needed for training
+     */
+    @SuppressWarnings("unchecked")
+    private MutableDataset<?> filterDatasetToSelectedFeatures(MutableDataset<?> fullDataset, 
+                                                             List<String> selectedFeatures, 
+                                                             String targetVariable,
+                                                             String modelType) {
+        log.info("Filtering dataset: {} features selected from {} total features", 
+                selectedFeatures.size(), fullDataset.getFeatureMap().size());
+        
+        MutableDataset<?> filteredDataset;
+        
+        if (modelType.equals("CLASSIFICATION")) {
+            LabelFactory labelFactory = new LabelFactory();
+            filteredDataset = new MutableDataset<>(fullDataset.getProvenance(), labelFactory);
+            
+            // Iterate through examples and create new examples with only selected features
+            for (org.tribuo.Example<Label> example : (MutableDataset<Label>) fullDataset) {
+                // Get feature values for selected features only
+                double[] featureValues = new double[selectedFeatures.size()];
+                String[] featureNames = selectedFeatures.toArray(new String[0]);
+                
+                // Create a map of feature names to values from the example
+                java.util.Map<String, Double> featureMap = new java.util.HashMap<>();
+                for (org.tribuo.Feature feature : example) {
+                    featureMap.put(feature.getName(), feature.getValue());
+                }
+                
+                // Extract values for selected features
+                for (int i = 0; i < selectedFeatures.size(); i++) {
+                    String featureName = selectedFeatures.get(i);
+                    Double value = featureMap.get(featureName);
+                    if (value != null) {
+                        featureValues[i] = value;
+                    } else {
+                        throw new IllegalArgumentException("Feature '" + featureName + "' not found in example");
+                    }
+                }
+                
+                // Create new example with only selected features
+                org.tribuo.impl.ArrayExample<Label> filteredExample = 
+                    new org.tribuo.impl.ArrayExample<>(example.getOutput(), featureNames, featureValues);
+                ((MutableDataset<Label>) filteredDataset).add(filteredExample);
+            }
+        } else {
+            // For regression
+            org.tribuo.regression.RegressionFactory regressionFactory = new org.tribuo.regression.RegressionFactory();
+            filteredDataset = new MutableDataset<>(fullDataset.getProvenance(), regressionFactory);
+            
+            // Iterate through examples and create new examples with only selected features
+            for (org.tribuo.Example<Regressor> example : (MutableDataset<Regressor>) fullDataset) {
+                // Get feature values for selected features only
+                double[] featureValues = new double[selectedFeatures.size()];
+                String[] featureNames = selectedFeatures.toArray(new String[0]);
+                
+                // Create a map of feature names to values from the example
+                java.util.Map<String, Double> featureMap = new java.util.HashMap<>();
+                for (org.tribuo.Feature feature : example) {
+                    featureMap.put(feature.getName(), feature.getValue());
+                }
+                
+                // Extract values for selected features
+                for (int i = 0; i < selectedFeatures.size(); i++) {
+                    String featureName = selectedFeatures.get(i);
+                    Double value = featureMap.get(featureName);
+                    if (value != null) {
+                        featureValues[i] = value;
+                    } else {
+                        throw new IllegalArgumentException("Feature '" + featureName + "' not found in example");
+                    }
+                }
+                
+                // Create new example with only selected features
+                org.tribuo.impl.ArrayExample<Regressor> filteredExample = 
+                    new org.tribuo.impl.ArrayExample<>(example.getOutput(), featureNames, featureValues);
+                ((MutableDataset<Regressor>) filteredDataset).add(filteredExample);
+            }
+        }
+        
+        log.info("Filtered dataset: {} examples, {} features (selected from {} original features)", 
+                filteredDataset.size(), filteredDataset.getFeatureMap().size(), fullDataset.getFeatureMap().size());
+        
+        return filteredDataset;
     }
     
     
@@ -229,6 +366,14 @@ public class ModelService {
     @Transactional(readOnly = true)
     public List<MLModel> getUserModels(Long userId) {
         return modelRepository.findByDatasetOwnerId(userId);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<MLModel> getReadyModels(Long userId) {
+        return modelRepository.findByUserIdAndStatusIn(
+            userId, 
+            List.of(MLModel.ModelStatus.READY)
+        );
     }
     
     @Transactional(isolation = Isolation.READ_COMMITTED)

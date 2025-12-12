@@ -44,26 +44,51 @@ ChartJS.register(
 );
 
 const XaiDisplay = ({ prediction, explanation, modelType }) => {
-  const getContributionColor = (contribution) => {
-    return contribution.direction === 'positive' ? '#4caf50' : '#f44336';
+  // Handle different explanation structures
+  const featureImportances = explanation?.featureImportances || explanation?.featureContributions || [];
+  const explanationText = explanation?.explanationText || explanation?.summary || explanation?.explanationSummary || 'No explanation available.';
+
+  const getContributionColor = (value) => {
+    return value >= 0 ? '#4caf50' : '#f44336';
   };
 
-  const getContributionIcon = (contribution) => {
-    return contribution.direction === 'positive' ? <TrendingUp /> : <TrendingDown />;
+  const getContributionIcon = (value) => {
+    return value >= 0 ? <TrendingUp /> : <TrendingDown />;
   };
 
-  const chartData = {
-    labels: explanation.featureContributions.map(fc => fc.featureName),
+  // Prepare chart data from feature importances
+  const chartData = featureImportances.length > 0 ? {
+    labels: featureImportances.map(fi => {
+      if (typeof fi === 'object' && fi !== null) {
+        return fi.featureName || fi.feature || fi.name || 'Unknown';
+      }
+      return 'Unknown';
+    }),
     datasets: [
       {
-        label: 'Feature Contribution',
-        data: explanation.featureContributions.map(fc => fc.contribution),
-        backgroundColor: explanation.featureContributions.map(fc => getContributionColor(fc)),
-        borderColor: explanation.featureContributions.map(fc => getContributionColor(fc)),
+        label: 'Feature Importance',
+        data: featureImportances.map(fi => {
+          if (typeof fi === 'object' && fi !== null) {
+            return fi.importance || fi.contribution || fi.value || 0;
+          }
+          return typeof fi === 'number' ? fi : 0;
+        }),
+        backgroundColor: featureImportances.map(fi => {
+          const value = typeof fi === 'object' && fi !== null
+            ? (fi.importance || fi.contribution || fi.value || 0)
+            : (typeof fi === 'number' ? fi : 0);
+          return getContributionColor(value);
+        }),
+        borderColor: featureImportances.map(fi => {
+          const value = typeof fi === 'object' && fi !== null
+            ? (fi.importance || fi.contribution || fi.value || 0)
+            : (typeof fi === 'number' ? fi : 0);
+          return getContributionColor(value);
+        }),
         borderWidth: 1,
       },
     ],
-  };
+  } : null;
 
   const chartOptions = {
     responsive: true,
@@ -97,9 +122,9 @@ const XaiDisplay = ({ prediction, explanation, modelType }) => {
         <Card sx={{ mb: 2 }}>
           <CardContent>
             <Typography variant="h4" color="primary" gutterBottom>
-              {prediction.prediction}
+              {prediction.predictionResult || prediction.prediction || 'N/A'}
             </Typography>
-            {prediction.confidence && (
+            {prediction.confidence !== undefined && prediction.confidence !== null && (
               <Typography variant="body1" color="text.secondary">
                 Confidence: {(prediction.confidence * 100).toFixed(2)}%
               </Typography>
@@ -117,7 +142,7 @@ const XaiDisplay = ({ prediction, explanation, modelType }) => {
                 <Chip
                   key={className}
                   label={`${className}: ${(probability * 100).toFixed(1)}%`}
-                  color={className === prediction.prediction ? 'primary' : 'default'}
+                  color={className === (prediction.predictionResult || prediction.prediction) ? 'primary' : 'default'}
                 />
               ))}
             </Box>
@@ -135,56 +160,74 @@ const XaiDisplay = ({ prediction, explanation, modelType }) => {
         </Box>
 
         <Typography variant="body1" paragraph>
-          {explanation.explanationText}
+          {explanationText}
         </Typography>
 
         {/* Feature Contributions Chart */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Feature Contributions
-          </Typography>
-          <Bar data={chartData} options={chartOptions} />
-        </Box>
+        {chartData && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Feature Contributions
+            </Typography>
+            <Bar data={chartData} options={chartOptions} />
+          </Box>
+        )}
 
         {/* Feature Contributions List */}
-        <Typography variant="h6" gutterBottom>
-          Detailed Feature Analysis
-        </Typography>
-        <List>
-          {explanation.featureContributions.map((contribution, index) => (
-            <ListItem key={index}>
-              <ListItemIcon>
-                {getContributionIcon(contribution)}
-              </ListItemIcon>
-              <ListItemText
-                primary={contribution.featureName}
-                secondary={`${contribution.direction} impact: ${contribution.contribution.toFixed(4)}`}
-              />
-              <Chip
-                label={contribution.direction}
-                color={contribution.direction === 'positive' ? 'success' : 'error'}
-                size="small"
-              />
-            </ListItem>
-          ))}
-        </List>
+        {featureImportances.length > 0 && (
+          <>
+            <Typography variant="h6" gutterBottom>
+              Detailed Feature Analysis
+            </Typography>
+            <List>
+              {featureImportances.map((fi, index) => {
+                const featureName = typeof fi === 'object' && fi !== null
+                  ? (fi.featureName || fi.feature || fi.name || 'Unknown')
+                  : 'Unknown';
+                const value = typeof fi === 'object' && fi !== null
+                  ? (fi.importance || fi.contribution || fi.value || 0)
+                  : (typeof fi === 'number' ? fi : 0);
+                const direction = value >= 0 ? 'positive' : 'negative';
+                
+                return (
+                  <ListItem key={index}>
+                    <ListItemIcon>
+                      {getContributionIcon(value)}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={featureName}
+                      secondary={`${direction} impact: ${value.toFixed(4)}`}
+                    />
+                    <Chip
+                      label={direction}
+                      color={direction === 'positive' ? 'success' : 'error'}
+                      size="small"
+                    />
+                  </ListItem>
+                );
+              })}
+            </List>
+          </>
+        )}
       </Paper>
 
       {/* Input Data Summary */}
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Input Data Summary
-        </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {Object.entries(explanation.inputData).map(([feature, value]) => (
-            <Chip
-              key={feature}
-              label={`${feature}: ${value}`}
-              variant="outlined"
-            />
-          ))}
-        </Box>
-      </Paper>
+      {explanation?.inputData && (
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Input Data Summary
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {Object.entries(explanation.inputData).map(([feature, value]) => (
+              <Chip
+                key={feature}
+                label={`${feature}: ${value}`}
+                variant="outlined"
+              />
+            ))}
+          </Box>
+        </Paper>
+      )}
     </Box>
   );
 };

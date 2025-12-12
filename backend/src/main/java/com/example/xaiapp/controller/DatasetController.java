@@ -16,6 +16,7 @@ import com.example.xaiapp.dto.ApiResponse;
 import com.example.xaiapp.dto.DatasetDto;
 import com.example.xaiapp.entity.User;
 import com.example.xaiapp.service.DatasetService;
+import com.example.xaiapp.service.NotificationService;
 
 @RestController
 @RequestMapping("/api/datasets")
@@ -23,9 +24,11 @@ import com.example.xaiapp.service.DatasetService;
 public class DatasetController {
     
     private final DatasetService datasetService;
+    private final NotificationService notificationService;
     
-    public DatasetController(DatasetService datasetService) {
+    public DatasetController(DatasetService datasetService, NotificationService notificationService) {
         this.datasetService = datasetService;
+        this.notificationService = notificationService;
     }
     
     @PostMapping("/upload")
@@ -34,6 +37,16 @@ public class DatasetController {
         try {
             User user = (User) authentication.getPrincipal();
             DatasetDto dataset = datasetService.storeFile(file, user.getId());
+            
+            // Create notification
+            notificationService.notifyDatasetUploaded(
+                user.getId(),
+                dataset.getId(),
+                dataset.getFileName() != null ? dataset.getFileName() : file.getOriginalFilename(),
+                dataset.getRowCount() != null ? dataset.getRowCount().intValue() : 0,
+                dataset.getHeaders() != null ? dataset.getHeaders().size() : 0
+            );
+            
             return ResponseEntity.ok(ApiResponse.success("Dataset uploaded successfully", dataset));
         } catch (IOException e) {
             return ResponseEntity.badRequest()

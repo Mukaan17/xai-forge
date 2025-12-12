@@ -91,7 +91,7 @@ public class DatasetService {
         
         // Parse CSV to get headers and row count
         List<String> headers = new ArrayList<>();
-        long rowCount = 0;
+        int rowCount = 0;
         
         try (Reader reader = new FileReader(filePath.toFile());
              CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build())) {
@@ -113,10 +113,18 @@ public class DatasetService {
         // Create dataset entity
         Dataset dataset = new Dataset();
         dataset.setFileName(originalFilename);
+        dataset.setOriginalFilename(originalFilename);
         dataset.setFilePath(filePath.toString());
         dataset.setHeaders(headers);
         dataset.setRowCount(rowCount);
+        dataset.setColumnCount(headers.size());
+        dataset.setFileSizeBytes(file.getSize());
+        dataset.setMimeType(file.getContentType() != null ? file.getContentType() : "text/csv");
         dataset.setOwner(user);
+        // Explicitly set ownerId to match user_id for database compatibility
+        if (user != null && user.getId() != null) {
+            dataset.setOwnerId(user.getId());
+        }
         
         Dataset savedDataset = datasetRepository.save(dataset);
         
@@ -173,7 +181,7 @@ public class DatasetService {
         dto.setFileName(dataset.getFileName());
         dto.setUploadDate(dataset.getUploadDate());
         dto.setHeaders(dataset.getHeaders());
-        dto.setRowCount(dataset.getRowCount());
+        dto.setRowCount(dataset.getRowCount() != null ? dataset.getRowCount().longValue() : 0L);
         dto.setOwnerId(dataset.getOwner().getId());
         return dto;
     }

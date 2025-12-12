@@ -27,6 +27,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.example.xaiapp.security.ApiKeyAuthenticationFilter;
 import com.example.xaiapp.security.JwtAuthenticationFilter;
 
 @Configuration
@@ -35,11 +36,15 @@ import com.example.xaiapp.security.JwtAuthenticationFilter;
 public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
     private final UserDetailsService userDetailsService;
     
     // Manual constructor (Lombok @RequiredArgsConstructor not working with Java 24)
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailsService userDetailsService) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                         ApiKeyAuthenticationFilter apiKeyAuthenticationFilter,
+                         UserDetailsService userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.apiKeyAuthenticationFilter = apiKeyAuthenticationFilter;
         this.userDetailsService = userDetailsService;
     }
     
@@ -85,6 +90,7 @@ public class SecurityConfig {
                     .disable()
                 )
             )
+            .addFilterBefore(apiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
@@ -94,9 +100,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList(allowedOrigins.split(",")));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L); // Cache preflight requests for 1 hour
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

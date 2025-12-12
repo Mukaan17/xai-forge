@@ -85,6 +85,67 @@ public class XaiService {
             throw new RuntimeException("Failed to generate explanation: " + e.getMessage());
         }
     }
+
+    /**
+     * Generate explanation for a model with given input data and prediction result.
+     * Used by PredictionHistoryService for regenerating explanations.
+     */
+    public Map<String, Object> generateExplanation(MLModel mlModel, Map<String, Object> inputData, String predictionResult) {
+        try {
+            // Convert inputData from Map<String, Object> to Map<String, String>
+            Map<String, String> stringInputData = new HashMap<>();
+            for (Map.Entry<String, Object> entry : inputData.entrySet()) {
+                stringInputData.put(entry.getKey(), String.valueOf(entry.getValue()));
+            }
+
+            if (mlModel.getModelPath() == null) {
+                log.warn("Model path is null for model {}", mlModel.getId());
+                return createFallbackExplanation(inputData, predictionResult);
+            }
+
+            String modelPath = mlModel.getModelPath() != null ? mlModel.getModelPath() : mlModel.getSerializedModelPath();
+            if (modelPath == null) {
+                log.warn("Model path is null for model {}", mlModel.getId());
+                return createFallbackExplanation(inputData, predictionResult);
+            }
+            Model<?> model = deserializeModel(modelPath);
+            Example<?> example = createExampleFromInput(stringInputData, mlModel);
+            
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            Prediction prediction = ((Model) model).predict(example);
+            
+            ExplanationResponse explanationResponse = generateExplanation(prediction, example, stringInputData, mlModel);
+            
+            // Convert ExplanationResponse to Map for storage
+            Map<String, Object> explanationMap = new HashMap<>();
+            explanationMap.put("explanationText", explanationResponse.getExplanationText());
+            explanationMap.put("featureImportances", explanationResponse.getFeatureContributions().stream()
+                .map(fc -> {
+                    Map<String, Object> fcMap = new HashMap<>();
+                    fcMap.put("featureName", fc.getFeatureName());
+                    fcMap.put("importance", fc.getContribution());
+                    fcMap.put("direction", fc.getContribution() >= 0 ? "positive" : "negative");
+                    return fcMap;
+                })
+                .collect(java.util.stream.Collectors.toList()));
+            explanationMap.put("inputData", inputData);
+            explanationMap.put("predictionResult", predictionResult);
+            
+            return explanationMap;
+        } catch (Exception e) {
+            log.error("Error generating explanation: {}", e.getMessage(), e);
+            return createFallbackExplanation(inputData, predictionResult);
+        }
+    }
+
+    private Map<String, Object> createFallbackExplanation(Map<String, Object> inputData, String predictionResult) {
+        Map<String, Object> fallback = new HashMap<>();
+        fallback.put("explanationText", "Explanation generation is temporarily unavailable.");
+        fallback.put("featureImportances", new ArrayList<>());
+        fallback.put("inputData", inputData);
+        fallback.put("predictionResult", predictionResult);
+        return fallback;
+    }
     
     private Model<?> deserializeModel(String modelPath) throws IOException, ClassNotFoundException {
         Path path = Paths.get(modelPath);

@@ -4,58 +4,31 @@
  * @Last Modified by:   Mukhil Sundararaj
  * @Last Modified time: 2025-10-24 18:36:13
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Typography,
   Box,
   Tabs,
   Tab,
-  Alert,
 } from '@mui/material';
 import DatasetUpload from '../components/dashboard/DatasetUpload';
 import ModelTrainer from '../components/dashboard/ModelTrainer';
 import Predictor from '../components/dashboard/Predictor';
-import { datasetAPI, modelAPI } from '../api/api';
 
 const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const [datasets, setDatasets] = useState([]);
-  const [models, setModels] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const [datasetsResponse, modelsResponse] = await Promise.all([
-        datasetAPI.getAll(),
-        modelAPI.getAll(),
-      ]);
-      setDatasets(datasetsResponse.data);
-      setModels(modelsResponse.data);
-    } catch (err) {
-      setError('Failed to load data: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
   const handleDatasetUploaded = () => {
-    fetchData(); // Refresh datasets
+    // React Query will automatically refetch
   };
 
   const handleModelTrained = () => {
-    fetchData(); // Refresh models
+    // React Query will automatically refetch
   };
 
   const TabPanel = ({ children, value, index, ...other }) => (
@@ -76,11 +49,6 @@ const DashboardPage = () => {
         Dashboard
       </Typography>
       
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={activeTab} onChange={handleTabChange}>
@@ -92,26 +60,18 @@ const DashboardPage = () => {
 
       <TabPanel value={activeTab} index={0}>
         <DatasetUpload
-          datasets={datasets}
           onDatasetUploaded={handleDatasetUploaded}
-          loading={loading}
         />
       </TabPanel>
 
       <TabPanel value={activeTab} index={1}>
         <ModelTrainer
-          datasets={datasets}
-          models={models}
           onModelTrained={handleModelTrained}
-          loading={loading}
         />
       </TabPanel>
 
       <TabPanel value={activeTab} index={2}>
-        <Predictor
-          models={models}
-          loading={loading}
-        />
+        <Predictor />
       </TabPanel>
     </Container>
   );

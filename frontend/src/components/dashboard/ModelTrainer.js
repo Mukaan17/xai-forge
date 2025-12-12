@@ -19,7 +19,6 @@ import {
   Alert,
   CircularProgress,
   Grid,
-  FormControlLabel,
   Checkbox,
   List,
   ListItem,
@@ -31,37 +30,58 @@ import {
   Psychology,
   Delete,
 } from '@mui/icons-material';
-import { modelAPI, datasetAPI } from '../../api/api';
+import { modelsAPI } from '../../api/models';
+import { datasetsAPI } from '../../api/datasets';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
-const ModelTrainer = ({ datasets, models, onModelTrained, loading }) => {
+const ModelTrainer = ({ onModelTrained }) => {
+  const queryClient = useQueryClient();
   const [selectedDataset, setSelectedDataset] = useState('');
-  const [datasetDetails, setDatasetDetails] = useState(null);
   const [modelName, setModelName] = useState('');
   const [modelType, setModelType] = useState('CLASSIFICATION');
   const [targetVariable, setTargetVariable] = useState('');
   const [selectedFeatures, setSelectedFeatures] = useState([]);
-  const [training, setTraining] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
+  // Fetch datasets
+  const { data: datasets = [] } = useQuery({
+    queryKey: ['datasets'],
+    queryFn: () => datasetsAPI.getAll(),
+    select: (response) => {
+      if (Array.isArray(response)) return response;
+      if (response?.content) return response.content;
+      if (response?.data) return Array.isArray(response.data) ? response.data : [];
+      return [];
+    },
+  });
+
+  // Fetch models
+  const { data: models = [] } = useQuery({
+    queryKey: ['models'],
+    queryFn: () => modelsAPI.getAll(),
+    select: (response) => {
+      if (Array.isArray(response)) return response;
+      if (response?.content) return response.content;
+      if (response?.data) return Array.isArray(response.data) ? response.data : [];
+      return [];
+    },
+  });
+
+  // Fetch dataset details when selected
+  const { data: datasetDetails } = useQuery({
+    queryKey: ['dataset', selectedDataset],
+    queryFn: () => datasetsAPI.getById(selectedDataset),
+    enabled: !!selectedDataset,
+    select: (response) => response?.data || response,
+  });
+
+  // Reset form when dataset changes
   useEffect(() => {
-    if (selectedDataset) {
-      fetchDatasetDetails();
-    } else {
-      setDatasetDetails(null);
+    if (!selectedDataset) {
       setTargetVariable('');
       setSelectedFeatures([]);
     }
   }, [selectedDataset]);
-
-  const fetchDatasetDetails = async () => {
-    try {
-      const response = await datasetAPI.getById(selectedDataset);
-      setDatasetDetails(response.data);
-    } catch (err) {
-      setError('Failed to load dataset details');
-    }
-  };
 
   const handleFeatureToggle = (feature) => {
     setSelectedFeatures(prev => {
@@ -73,41 +93,67 @@ const ModelTrainer = ({ datasets, models, onModelTrained, loading }) => {
     });
   };
 
-  const handleTrain = async () => {
-    if (!selectedDataset || !modelName || !targetVariable || selectedFeatures.length === 0) {
-      setError('Please fill in all required fields');
-      return;
-    }
-
-    setTraining(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const trainData = {
-        datasetId: parseInt(selectedDataset),
-        modelName,
-        modelType,
-        targetVariable,
-        featureNames: selectedFeatures,
-      };
-
-      await modelAPI.train(trainData);
-      setSuccess('Model trained successfully!');
+  // Train mutation
+  const trainMutation = useMutation({
+    mutationFn: (trainData) => modelsAPI.train(trainData),
+    onSuccess: () => {
+      toast.success('Model training started!');
       setModelName('');
       setTargetVariable('');
       setSelectedFeatures([]);
-      onModelTrained();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Training failed');
-    } finally {
-      setTraining(false);
+      queryClient.invalidateQueries({ queryKey: ['models'] });
+      if (onModelTrained) onModelTrained();
+    },
+    onError: (error) => {
+      const errorMessage = error.response?.data?.message || 'Training failed';
+      if (errorMessage.includes('already exists')) {
+        toast.error(errorMessage + ' Please delete the existing model first.');
+      } else {
+        toast.error(errorMessage);
+      }
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id) => modelsAPI.delete(id),
+    onSuccess: () => {
+      toast.success('Model deleted successfully!');
+      queryClient.invalidateQueries({ queryKey: ['models'] });
+      if (onModelTrained) onModelTrained();
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to delete model');
+    },
+  });
+
+  const handleTrain = () => {
+    if (!selectedDataset || !modelName || !targetVariable || selectedFeatures.length === 0) {
+      toast.error('Please fill in all required fields');
+      return;
     }
+
+    const trainData = {
+      datasetId: parseInt(selectedDataset),
+      modelName,
+      modelType,
+      targetVariable,
+      featureNames: selectedFeatures,
+    };
+
+    trainMutation.mutate(trainData);
   };
 
-  const availableFeatures = datasetDetails?.headers?.filter(
+  const handleDeleteModel = (modelId) => {
+    if (!window.confirm('Are you sure you want to delete this model? This action cannot be undone.')) {
+      return;
+    }
+    deleteMutation.mutate(modelId);
+  };
+
+  const availableFeatures = (datasetDetails?.columnNames || datasetDetails?.headers || []).filter(
     header => header !== targetVariable
-  ) || [];
+  );
 
   return (
     <Box>
@@ -115,17 +161,6 @@ const ModelTrainer = ({ datasets, models, onModelTrained, loading }) => {
         Train Machine Learning Model
       </Typography>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {success}
-        </Alert>
-      )}
 
       <Grid container spacing={3}>
         {/* Configuration Panel */}
@@ -144,7 +179,7 @@ const ModelTrainer = ({ datasets, models, onModelTrained, loading }) => {
               >
                 {datasets.map((dataset) => (
                   <MenuItem key={dataset.id} value={dataset.id}>
-                    {dataset.fileName} ({dataset.rowCount} rows)
+                    {dataset.fileName || dataset.originalFilename || dataset.name} ({dataset.rowCount || 0} rows)
                   </MenuItem>
                 ))}
               </Select>
@@ -179,9 +214,9 @@ const ModelTrainer = ({ datasets, models, onModelTrained, loading }) => {
                     onChange={(e) => setTargetVariable(e.target.value)}
                     label="Target Variable"
                   >
-                    {datasetDetails?.headers?.map((header) => (
-                      <MenuItem key={header} value={header}>
-                        {header}
+                    {(datasetDetails?.columnNames || datasetDetails?.headers || []).map((column) => (
+                      <MenuItem key={column} value={column}>
+                        {column}
                       </MenuItem>
                     ))}
                   </Select>
@@ -190,11 +225,11 @@ const ModelTrainer = ({ datasets, models, onModelTrained, loading }) => {
                 <Button
                   variant="contained"
                   onClick={handleTrain}
-                  disabled={training || !modelName || !targetVariable || selectedFeatures.length === 0}
-                  startIcon={training ? <CircularProgress size={20} /> : <Psychology />}
+                  disabled={trainMutation.isPending || !modelName || !targetVariable || selectedFeatures.length === 0}
+                  startIcon={trainMutation.isPending ? <CircularProgress size={20} /> : <Psychology />}
                   fullWidth
                 >
-                  {training ? 'Training...' : 'Train Model'}
+                  {trainMutation.isPending ? 'Training...' : 'Train Model'}
                 </Button>
               </>
             )}
@@ -256,23 +291,70 @@ const ModelTrainer = ({ datasets, models, onModelTrained, loading }) => {
       </Grid>
 
       {/* Trained Models */}
-      {models.length > 0 && (
-        <Paper sx={{ p: 3, mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Trained Models
+      <Paper sx={{ p: 3, mt: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Trained Models
+          {selectedDataset && models && Array.isArray(models) && models.length > 0 && (
+            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+              ({models.length} total)
+            </Typography>
+          )}
+        </Typography>
+        {models.length > 0 ? (
+          <>
+            <List>
+              {models.map((model) => (
+                <ListItem 
+                  key={model.id}
+                  sx={{
+                    backgroundColor: selectedDataset && (model.dataset?.id === parseInt(selectedDataset) || model.datasetId === parseInt(selectedDataset))
+                      ? 'action.selected' 
+                      : 'transparent',
+                    borderRadius: 1,
+                    mb: 1,
+                    border: selectedDataset && (model.dataset?.id === parseInt(selectedDataset) || model.datasetId === parseInt(selectedDataset))
+                      ? '2px solid' 
+                      : 'none',
+                    borderColor: 'primary.main'
+                  }}
+                >
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <span>{model.name || model.modelName}</span>
+                        {selectedDataset && (model.dataset?.id === parseInt(selectedDataset) || model.datasetId === parseInt(selectedDataset)) && (
+                          <Chip label="For this dataset" size="small" color="primary" />
+                        )}
+                      </Box>
+                    }
+                    secondary={`Type: ${model.modelType || model.type} | Target: ${model.targetColumn || model.targetVariable} | Accuracy: ${model.accuracy ? (model.accuracy * 100).toFixed(2) + '%' : 'N/A'}`}
+                  />
+                  <ListItemSecondaryAction>
+                    <IconButton
+                      edge="end"
+                      aria-label="delete"
+                      onClick={() => handleDeleteModel(model.id)}
+                      color="error"
+                      title="Delete this model"
+                    >
+                      <Delete />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              ))}
+            </List>
+            {selectedDataset && models.some(m => m.dataset?.id === parseInt(selectedDataset) || m.datasetId === parseInt(selectedDataset)) && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                A model already exists for the selected dataset. Delete it above to train a new one.
+              </Alert>
+            )}
+          </>
+        ) : (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+            No trained models yet. Train a model using the form above.
           </Typography>
-          <List>
-            {models.map((model) => (
-              <ListItem key={model.id}>
-                <ListItemText
-                  primary={model.modelName}
-                  secondary={`Type: ${model.modelType} | Target: ${model.targetVariable} | Accuracy: ${model.accuracy ? (model.accuracy * 100).toFixed(2) + '%' : 'N/A'}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </Paper>
-      )}
+        )}
+      </Paper>
     </Box>
   );
 };

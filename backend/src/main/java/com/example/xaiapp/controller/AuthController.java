@@ -76,6 +76,19 @@ public class AuthController {
         try {
             System.out.println("Attempting login for username: " + loginRequest.getUsername());
             
+            // Check if user exists and get account status
+            User user = userRepository.findByUsername(loginRequest.getUsername()).orElse(null);
+            if (user != null) {
+                System.out.println("User found - Active: " + user.getActive() + ", Locked: " + user.getAccountLocked() + 
+                    ", Enabled: " + user.isEnabled() + ", AccountNonExpired: " + user.isAccountNonExpired() +
+                    ", AccountNonLocked: " + user.isAccountNonLocked());
+                if (user.getPassword() != null) {
+                    System.out.println("Password hash prefix: " + user.getPassword().substring(0, Math.min(20, user.getPassword().length())));
+                }
+            } else {
+                System.out.println("User not found in database");
+            }
+            
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getUsername(),
@@ -88,13 +101,13 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = tokenProvider.generateToken(authentication);
             
-            User user = userRepository.findByUsername(loginRequest.getUsername())
+            User authenticatedUser = userRepository.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
             
             JwtAuthResponse response = new JwtAuthResponse();
             response.setAccessToken(jwt);
-            response.setUserId(user.getId());
-            response.setUsername(user.getUsername());
+            response.setUserId(authenticatedUser.getId());
+            response.setUsername(authenticatedUser.getUsername());
             
             return ResponseEntity.ok(response);
             
@@ -102,6 +115,14 @@ public class AuthController {
             System.out.println("Bad credentials for: " + loginRequest.getUsername() + " - " + e.getMessage());
             return ResponseEntity.status(401)
                 .body(ApiResponse.error("Invalid username or password"));
+        } catch (org.springframework.security.authentication.LockedException e) {
+            System.out.println("Account locked for: " + loginRequest.getUsername());
+            return ResponseEntity.status(401)
+                .body(ApiResponse.error("Account is locked. Please try again later."));
+        } catch (org.springframework.security.authentication.DisabledException e) {
+            System.out.println("Account disabled for: " + loginRequest.getUsername());
+            return ResponseEntity.status(401)
+                .body(ApiResponse.error("Account is disabled."));
         } catch (Exception e) {
             System.out.println("Login error for: " + loginRequest.getUsername() + " - " + e.getClass().getSimpleName() + ": " + e.getMessage());
             e.printStackTrace();
