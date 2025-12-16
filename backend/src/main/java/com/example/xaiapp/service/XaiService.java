@@ -496,6 +496,24 @@ public class XaiService {
                 return generateFallbackExplanation(featureValues);
             }
             
+            // Normalize contributions to 0-1 range for fair comparison across features
+            // This ensures all features are comparable regardless of their raw value scales
+            if (!contributions.isEmpty()) {
+                double maxContribution = contributions.stream()
+                    .mapToDouble(c -> Math.abs(c.getContribution()))
+                    .max()
+                    .orElse(1.0);
+                
+                if (maxContribution > 0) {
+                    log.debug("Normalizing contributions: max contribution = {}", maxContribution);
+                    for (ExplanationResponse.FeatureContribution contrib : contributions) {
+                        double normalized = Math.abs(contrib.getContribution()) / maxContribution;
+                        contrib.setContribution(normalized);
+                    }
+                    log.debug("Contributions normalized to 0-1 range");
+                }
+            }
+            
             log.info("Generated {} feature contributions for regression model using perturbation method", 
                 contributions.size());
             
