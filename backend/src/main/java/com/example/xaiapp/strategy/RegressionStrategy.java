@@ -43,17 +43,41 @@ public class RegressionStrategy implements TrainingStrategy {
 
         validateDataset(dataset);
 
+        // Extract hyperparameters from parameters map or use defaults
+        int epochs = mlConfig.getRegression().getEpochs();
+        double learningRate = mlConfig.getRegression().getLearningRate();
+        int batchSize = mlConfig.getRegression().getMinibatchSize();
+
+        if (parameters != null) {
+            if (parameters.containsKey("epochs")) {
+                epochs = (Integer) parameters.get("epochs");
+            }
+            if (parameters.containsKey("learningRate")) {
+                Object lr = parameters.get("learningRate");
+                if (lr instanceof Integer) {
+                    learningRate = ((Integer) lr).doubleValue();
+                } else {
+                    learningRate = (Double) lr;
+                }
+            }
+            if (parameters.containsKey("batchSize")) {
+                batchSize = (Integer) parameters.get("batchSize");
+            }
+        }
+
+        log.info("Hyperparameters: epochs={}, learningRate={}, batchSize={}", epochs, learningRate, batchSize);
+
         @SuppressWarnings("unchecked")
         MutableDataset<Regressor> regressorDataset = (MutableDataset<Regressor>) dataset;
 
         // Configure LinearSGDTrainer with configurable parameters
         LinearSGDTrainer trainer = new LinearSGDTrainer(
                 new SquaredLoss(),
-                new AdaGrad(mlConfig.getRegression().getLearningRate(),
+                new AdaGrad(learningRate,
                         mlConfig.getRegression().getInitialLearningRate()),
-                mlConfig.getRegression().getEpochs(),
+                epochs,
                 1000, // logging interval
-                mlConfig.getRegression().getMinibatchSize(),
+                batchSize,
                 Trainer.DEFAULT_SEED);
 
         log.info("Training dataset size: {} examples", regressorDataset.size());

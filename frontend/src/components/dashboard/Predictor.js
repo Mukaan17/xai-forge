@@ -30,7 +30,7 @@ import XaiDisplay from './XaiDisplay';
 const Predictor = ({ models = [], loading }) => {
   // Ensure models is always an array, even if null or undefined is passed
   const safeModels = Array.isArray(models) ? models : [];
-  
+
   const [selectedModel, setSelectedModel] = useState('');
   const [modelDetails, setModelDetails] = useState(null);
   const [inputData, setInputData] = useState({});
@@ -55,7 +55,7 @@ const Predictor = ({ models = [], loading }) => {
     try {
       const response = await modelAPI.getById(selectedModel);
       setModelDetails(response.data);
-      
+
       // Initialize input data with empty values
       const initialInputData = {};
       if (response.data?.featureNames && Array.isArray(response.data.featureNames)) {
@@ -171,7 +171,7 @@ const Predictor = ({ models = [], loading }) => {
                       <strong>Target Variable:</strong> {modelDetails.targetVariable}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Accuracy:</strong> {modelDetails.accuracy ? (modelDetails.accuracy * 100).toFixed(2) + '%' : 'N/A'}
+                      <strong>Accuracy:</strong> {modelDetails.accuracy !== null && modelDetails.accuracy !== undefined ? (modelDetails.accuracy * 100).toFixed(2) + '%' : 'N/A'}
                     </Typography>
                     <Typography variant="body2">
                       <strong>Trained:</strong> {formatDate(modelDetails.trainingDate)}
