@@ -50,7 +50,7 @@ public class XaiService {
             Prediction prediction = ((Model) model).predict(example);
             
             // Create prediction response
-            return createPredictionResponse(prediction, inputData, mlModel.getModelType());
+            return createPredictionResponse(prediction, inputData, mlModel.getModelType(), mlModel, model);
             
         } catch (Exception e) {
             log.error("Error making prediction: {}", e.getMessage(), e);
@@ -148,7 +148,9 @@ public class XaiService {
     
     private PredictionResponse createPredictionResponse(Prediction<?> prediction, 
                                                        Map<String, String> inputData, 
-                                                       MLModel.ModelType modelType) {
+                                                       MLModel.ModelType modelType,
+                                                       MLModel mlModel,
+                                                       Model<?> model) {
         PredictionResponse response = new PredictionResponse();
         response.setInputData(inputData);
         
@@ -194,7 +196,38 @@ public class XaiService {
             @SuppressWarnings("unchecked")
             Prediction<Regressor> regressorPrediction = (Prediction<Regressor>) prediction;
             Regressor predictedRegressor = regressorPrediction.getOutput();
-            response.setPrediction(String.valueOf(predictedRegressor.getValues()[0]));
+            double normalizedValue = predictedRegressor.getValues()[0];
+            
+            // Check if model uses normalization (TransformedModel)
+            // If so, denormalize the prediction using output statistics
+            double denormalizedValue = normalizedValue;
+            
+            if (model instanceof org.tribuo.transform.TransformedModel) {
+                // Get the output info which contains the original statistics
+                org.tribuo.OutputInfo<?> outputInfo = model.getOutputIDInfo();
+                if (outputInfo instanceof org.tribuo.regression.RegressionInfo) {
+                    org.tribuo.regression.RegressionInfo regInfo = (org.tribuo.regression.RegressionInfo) outputInfo;
+                    
+                    // Get mean and stdDev from the first (and typically only) dimension
+                    // From logs, we see dimension name is "DIM-0" for the first dimension
+                    try {
+                        String dimName = "DIM-0"; // Standard naming for first dimension
+                        double mean = regInfo.getMean(dimName);
+                        double variance = regInfo.getVariance(dimName);
+                        double stdDev = Math.sqrt(variance);
+                        
+                        // Denormalize: original = (normalized * stdDev) + mean
+                        denormalizedValue = (normalizedValue * stdDev) + mean;
+                        
+                        log.debug("Denormalizing prediction: normalized={}, mean={}, stdDev={}, denormalized={}", 
+                            normalizedValue, mean, stdDev, denormalizedValue);
+                    } catch (Exception e) {
+                        log.warn("Could not denormalize prediction, using normalized value: {}", e.getMessage());
+                    }
+                }
+            }
+            
+            response.setPrediction(String.valueOf(denormalizedValue));
             response.setConfidence(1.0); // Regression doesn't have confidence in the same way
         }
         
