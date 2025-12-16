@@ -427,14 +427,20 @@ public class XaiService {
                 double contribution;
                 if (Math.abs(changeUp) >= Math.abs(changeDown)) {
                     // Use upward perturbation - this tells us the impact of increasing the feature
-                    contribution = changeUp / delta * originalValue;
+                    // Normalize contribution using regressionBaseFactor to prevent large raw values from dominating
+                    double normalizedValue = Math.abs(originalValue);
+                    double baseContribution = (changeUp / delta) * normalizedValue;
+                    contribution = baseContribution * xaiConfig.getRegressionBaseFactor();
                     log.debug("Feature {}: Using UP perturbation. Change: {} -> {}, contribution: {}", 
                         featureName, baselineValue, perturbedValueUp_result, contribution);
                 } else {
                     // Use downward perturbation, but negate it to get the effect of increasing the feature
                     // changeDown is negative when decreasing feature decreases prediction
                     // So -changeDown is positive and represents the effect of increasing the feature
-                    contribution = -changeDown / delta * originalValue;
+                    // Normalize contribution using regressionBaseFactor to prevent large raw values from dominating
+                    double normalizedValue = Math.abs(originalValue);
+                    double baseContribution = (-changeDown / delta) * normalizedValue;
+                    contribution = baseContribution * xaiConfig.getRegressionBaseFactor();
                     log.debug("Feature {}: Using DOWN perturbation (negated). Change: {} -> {}, contribution: {}", 
                         featureName, baselineValue, perturbedValueDown_result, contribution);
                 }
