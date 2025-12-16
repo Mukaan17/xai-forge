@@ -1,13 +1,8 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-09-04 16:08:06
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 15:18:28
- */
 package com.example.xaiapp.controller;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -47,6 +42,11 @@ public class ModelController {
             return ResponseEntity.badRequest()
                 .body(ApiResponse.error("Invalid dataset: " + e.getMessage()));
         } catch (ModelTrainingException e) {
+            // Check if it's a "model already exists" error - return 409 Conflict
+            if (e.getMessage().contains("already exists") || e.getUserMessage().contains("already")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.error(e.getUserMessage()));
+            }
             return ResponseEntity.status(500)
                 .body(ApiResponse.error("Training failed: " + e.getMessage()));
         } catch (IllegalArgumentException e) {

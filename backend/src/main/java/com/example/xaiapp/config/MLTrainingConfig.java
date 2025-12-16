@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 18:31:22
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:39:19
- */
 package com.example.xaiapp.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -16,7 +10,6 @@ import lombok.Data;
  * This configuration class provides configurable parameters for machine learning
  * model training, replacing hardcoded values with environment-based configuration.
  * 
- * @author Mukhil Sundararaj
  * @since 1.0.0
  */
 @Configuration

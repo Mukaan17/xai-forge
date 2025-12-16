@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 19:00:33
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 19:05:44
- */
 package com.example.xaiapp.unit.config;
 
 import com.example.xaiapp.config.ConfigurationValidator;

@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 12:13:16
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:38:38
- */
 package com.example.xaiapp.exception;
 
 /**
@@ -12,7 +6,6 @@ package com.example.xaiapp.exception;
  * This exception is thrown when attempting to access a dataset that
  * doesn't exist or the user doesn't have permission to access.
  * 
- * @author Mukhil Sundararaj
  * @since 1.0.0
  */
 public class DatasetNotFoundException extends DatasetException {

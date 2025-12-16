@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 18:31:44
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:34:02
- */
 package com.example.xaiapp.config;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +15,6 @@ import java.nio.file.Paths;
  * This component validates critical configuration on application startup
  * to ensure the application is properly configured before accepting requests.
  * 
- * @author Mukhil Sundararaj
  * @since 1.0.0
  */
 @Component

@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-09-04 16:06:36
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:38:16
- */
 package com.example.xaiapp.security;
 
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,12 +10,11 @@ import com.example.xaiapp.entity.User;
 import com.example.xaiapp.repository.UserRepository;
 
 @Service
-@RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
     
     private final UserRepository userRepository;
     
-    // Manual constructor (Lombok @RequiredArgsConstructor not generating it)
+    // Manual constructor (Lombok @RequiredArgsConstructor not working with Java 24)
     public UserDetailsServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -29,8 +22,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        System.out.println("UserDetailsService: Loading user: " + username);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+        
+        System.out.println("UserDetailsService: Found user - username: " + user.getUsername() + ", password hash: " + (user.getPassword() != null ? user.getPassword().substring(0, Math.min(30, user.getPassword().length())) : "null"));
         
         return user;
     }

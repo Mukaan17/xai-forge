@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 12:14:27
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:38:29
- */
 package com.example.xaiapp.factory;
 
 import com.example.xaiapp.entity.MLModel;
@@ -25,11 +19,9 @@ import java.util.Map;
  * This factory provides methods for creating ML models and selecting
  * appropriate training strategies based on model type.
  * 
- * @author Mukhil Sundararaj
  * @since 1.0.0
  */
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class ModelFactory {
     
@@ -39,7 +31,7 @@ public class ModelFactory {
     private final ClassificationStrategy classificationStrategy;
     private final RegressionStrategy regressionStrategy;
     
-    // Manual constructor (Lombok @RequiredArgsConstructor not generating it)
+    // Manual constructor (Lombok @RequiredArgsConstructor not working with Java 24)
     public ModelFactory(ClassificationStrategy classificationStrategy, RegressionStrategy regressionStrategy) {
         this.classificationStrategy = classificationStrategy;
         this.regressionStrategy = regressionStrategy;

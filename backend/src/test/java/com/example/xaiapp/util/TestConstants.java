@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 18:55:41
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:56:58
- */
 package com.example.xaiapp.util;
 
 /**

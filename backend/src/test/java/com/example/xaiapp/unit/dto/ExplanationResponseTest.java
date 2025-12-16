@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-01-15 10:00:00
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-01-15 10:00:00
- */
 package com.example.xaiapp.unit.dto;
 
 import com.example.xaiapp.dto.ExplanationResponse;

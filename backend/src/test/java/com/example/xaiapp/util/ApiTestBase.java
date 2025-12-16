@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 18:56:27
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:56:55
- */
 package com.example.xaiapp.util;
 
 import io.restassured.RestAssured;

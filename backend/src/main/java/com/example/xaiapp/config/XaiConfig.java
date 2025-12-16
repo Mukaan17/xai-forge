@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 18:30:57
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:39:15
- */
 package com.example.xaiapp.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -20,7 +14,6 @@ import java.util.HashMap;
  * model explanations, replacing hardcoded magic numbers with environment-based
  * configuration.
  * 
- * @author Mukhil Sundararaj
  * @since 1.0.0
  */
 @Configuration

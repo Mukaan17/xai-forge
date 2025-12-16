@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-09-04 16:05:36
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:38:52
- */
 package com.example.xaiapp.entity;
 
 import java.time.LocalDateTime;
@@ -14,6 +8,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "ml_models")
@@ -51,6 +46,7 @@ public class MLModel {
     
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dataset_id", nullable = false)
+    @JsonIgnore
     private Dataset dataset;
     
     @Column(name = "accuracy")

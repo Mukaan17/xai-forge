@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 19:05:11
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 19:05:53
- */
 package com.example.xaiapp.integration.security;
 
 import com.example.xaiapp.util.TestConstants;

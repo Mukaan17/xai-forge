@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 12:13:14
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:38:39
- */
 package com.example.xaiapp.exception;
 
 /**
@@ -12,7 +6,6 @@ package com.example.xaiapp.exception;
  * This exception is thrown when there are issues with dataset operations
  * such as upload, parsing, or validation.
  * 
- * @author Mukhil Sundararaj
  * @since 1.0.0
  */
 public class DatasetException extends XaiException {

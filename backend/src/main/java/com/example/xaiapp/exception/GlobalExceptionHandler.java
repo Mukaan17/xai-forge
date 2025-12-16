@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 12:13:58
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:38:37
- */
 package com.example.xaiapp.exception;
 
 import com.example.xaiapp.dto.ApiResponse;
@@ -33,7 +27,6 @@ import java.util.stream.Collectors;
  * This class provides centralized exception handling for the entire application,
  * ensuring consistent error responses and proper logging of exceptions.
  * 
- * @author Mukhil Sundararaj
  * @since 1.0.0
  */
 @RestControllerAdvice

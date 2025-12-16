@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 12:12:58
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:39:20
- */
 package com.example.xaiapp.config;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +16,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  * machine learning operations, ensuring non-blocking model training
  * and prediction generation.
  * 
- * @author Mukhil Sundararaj
  * @since 1.0.0
  */
 @Configuration

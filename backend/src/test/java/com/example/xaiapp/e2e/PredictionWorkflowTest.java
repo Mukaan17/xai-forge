@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 19:13:37
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 20:16:21
- */
 package com.example.xaiapp.e2e;
 
 import com.example.xaiapp.util.SeleniumTestBase;

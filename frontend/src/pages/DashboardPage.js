@@ -1,5 +1,4 @@
 /**
- * @Author: Mukhil Sundararaj
  * @Date:   2025-09-04 16:09:53
  * @Last Modified by:   Mukhil Sundararaj
  * @Last Modified time: 2025-10-24 18:36:13
@@ -33,10 +32,14 @@ const DashboardPage = () => {
         datasetAPI.getAll(),
         modelAPI.getAll(),
       ]);
-      setDatasets(datasetsResponse.data);
-      setModels(modelsResponse.data);
+      // Ensure we always set arrays, even if response.data is null or undefined
+      setDatasets(Array.isArray(datasetsResponse?.data) ? datasetsResponse.data : []);
+      setModels(Array.isArray(modelsResponse?.data) ? modelsResponse.data : []);
     } catch (err) {
       setError('Failed to load data: ' + (err.response?.data?.message || err.message));
+      // Ensure models and datasets are always arrays even on error
+      setModels([]);
+      setDatasets([]);
     } finally {
       setLoading(false);
     }

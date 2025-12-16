@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-09-04 16:06:03
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 15:18:11
- */
 package com.example.xaiapp.dto;
 
 import lombok.AllArgsConstructor;

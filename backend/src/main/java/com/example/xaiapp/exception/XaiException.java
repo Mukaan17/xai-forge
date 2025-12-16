@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 12:13:05
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:38:33
- */
 package com.example.xaiapp.exception;
 
 /**
@@ -12,7 +6,6 @@ package com.example.xaiapp.exception;
  * All custom exceptions in the application should extend this class
  * to provide consistent error handling and logging.
  * 
- * @author Mukhil Sundararaj
  * @since 1.0.0
  */
 public class XaiException extends RuntimeException {

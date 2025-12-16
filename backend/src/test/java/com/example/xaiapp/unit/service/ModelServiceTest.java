@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 18:57:15
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 19:05:30
- */
 package com.example.xaiapp.unit.service;
 
 import com.example.xaiapp.dto.TrainRequestDto;

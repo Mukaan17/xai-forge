@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 18:56:10
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 18:56:57
- */
 package com.example.xaiapp.util;
 
 import io.github.bonigarcia.wdm.WebDriverManager;

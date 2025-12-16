@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 12:14:48
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 15:18:18
- */
 package com.example.xaiapp.builder;
 
 import com.example.xaiapp.dto.TrainRequestDto;
@@ -18,7 +12,6 @@ import java.util.List;
  * This builder provides a fluent interface for creating TrainRequestDto
  * objects with proper validation and default values.
  * 
- * @author Mukhil Sundararaj
  * @since 1.0.0
  */
 public class TrainRequestBuilder {

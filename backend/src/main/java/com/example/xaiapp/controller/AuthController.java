@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-09-04 16:07:00
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 15:18:26
- */
 package com.example.xaiapp.controller;
 
 import org.springframework.http.ResponseEntity;
@@ -74,12 +68,16 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
         try {
+            System.out.println("Attempting login for username: " + loginRequest.getUsername());
+            
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getUsername(),
                     loginRequest.getPassword()
                 )
             );
+            
+            System.out.println("Authentication successful for: " + loginRequest.getUsername());
             
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = tokenProvider.generateToken(authentication);
@@ -94,8 +92,14 @@ public class AuthController {
             
             return ResponseEntity.ok(response);
             
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            System.out.println("Bad credentials for: " + loginRequest.getUsername() + " - " + e.getMessage());
+            return ResponseEntity.status(401)
+                .body(ApiResponse.error("Invalid username or password"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest()
+            System.out.println("Login error for: " + loginRequest.getUsername() + " - " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(401)
                 .body(ApiResponse.error("Invalid username or password"));
         }
     }

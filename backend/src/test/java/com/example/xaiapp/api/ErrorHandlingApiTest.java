@@ -1,9 +1,3 @@
-/**
- * @Author: Mukhil Sundararaj
- * @Date:   2025-10-24 19:11:13
- * @Last Modified by:   Mukhil Sundararaj
- * @Last Modified time: 2025-10-24 20:15:28
- */
 package com.example.xaiapp.api;
 
 import com.example.xaiapp.util.ApiTestBase;
