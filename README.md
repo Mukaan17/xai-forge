@@ -88,7 +88,7 @@ That's it! The application is fully containerized and ready to use.
    npm install
    # Optional: Set API URL for different environments
    export REACT_APP_API_URL=http://localhost:8080/api
-   npm start
+   npm start  # or npm run dev (both use Vite)
    ```
 
 6. **Access the application**

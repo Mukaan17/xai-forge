@@ -218,8 +218,9 @@ export function HeroSection() {
             // No need to do anything, heroFadeIn is already true from initial state
         } else {
             // Page reload or initial load - show loading screen with same sequence
-            // Show loading screen for 7.5 seconds to ensure all phrases are displayed, then fade out
-            // 2s per phrase (3 phrases) + 1.5s buffer = 7.5s total
+            // Reduced timing: ~1s per phrase scramble + 1.2s delay = ~2.2s per phrase
+            // 3 phrases = ~6.6s, add 0.8s buffer for "Made Easy" to complete = ~5.4s total
+            // Actually: phrase1 (~1s) + delay (1.2s) + phrase2 (~1s) + delay (1.2s) + phrase3 (~0.6s) + buffer (0.8s) = ~5.8s
             const timer = setTimeout(() => {
                 setFadeOut(true)
                 // Start hero animation as loading screen starts fading out
@@ -228,7 +229,7 @@ export function HeroSection() {
                 setTimeout(() => {
                     setShowLoading(false)
                 }, 1500) // Wait for fade-out transition to complete
-            }, 7500)
+            }, 5800) // Reduced from 7500ms to 5800ms
 
             return () => {
                 clearTimeout(timer)

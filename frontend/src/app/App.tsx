@@ -34,6 +34,9 @@ function AppRoutes() {
   const previousPathnameRef = React.useRef<string>(location.pathname);
   const previousPathForAnimationRef = React.useRef<string>(location.pathname);
   const [animationDirection, setAnimationDirection] = React.useState(100);
+  const animationDirectionRef = React.useRef(100);
+  const heroExitDirectionRef = React.useRef<number | null>(null);
+  const heroExitXRef = React.useRef<number>(-100); // Default: exit left
   
   // Helper function to check if a path is a dashboard route
   const isDashboardRoutePath = (path: string) => {
@@ -49,6 +52,23 @@ function AppRoutes() {
   React.useEffect(() => {
     const currentPath = location.pathname;
     const previousPath = previousPathnameRef.current;
+    
+    // Check if navigating from hero to login/signup
+    if (previousPath === '/' && (currentPath === '/login' || currentPath === '/register')) {
+      // Store that hero should exit left when navigating to login/signup
+      // This will be used when we're back on hero and navigating to login/signup again
+      heroExitDirectionRef.current = -100;
+      // Don't clear immediately - keep it for future navigations
+      // Only clear when we're actually on hero and not navigating to login/signup
+    } else if (currentPath === '/' && previousPath !== '/') {
+      // We're back on hero - keep the ref if it was set, only clear if we came from somewhere other than login/signup
+      if (previousPath !== '/login' && previousPath !== '/register') {
+        heroExitDirectionRef.current = null;
+      }
+    } else if (currentPath !== '/' && currentPath !== '/login' && currentPath !== '/register') {
+      // We're on a different page - clear the ref
+      heroExitDirectionRef.current = null;
+    }
     
     // Store previous path in sessionStorage for back navigation
     if (previousPath && previousPath !== currentPath) {
@@ -76,15 +96,29 @@ function AppRoutes() {
     const isClosingToHero = sessionStorage.getItem('xai-forge-closing-to-hero') === 'true';
     const pathnameChanged = previousPathnameRef.current !== location.pathname;
     
-    if (isClosingToHero && pathnameChanged) {
-      // Closing login/signup pages - exit to left, hero enters from right
-      setAnimationDirection(100);
-      // Clear the flag after animation
+    // Check if we're closing to hero (must be on hero page now and flag is set)
+    if (isClosingToHero && location.pathname === '/') {
+      // Get the pathname we're closing from (stored when close button was clicked)
+      const closingFromPath = sessionStorage.getItem('xai-forge-closing-from-path');
+      const isLoginOrSignup = closingFromPath === '/login' || closingFromPath === '/register';
+      
+      if (isLoginOrSignup) {
+        // Closing login/signup pages - exit to right, hero enters from left
+        animationDirectionRef.current = -100;
+        setAnimationDirection(-100);
+      } else {
+        // Closing other pages - exit to left, hero enters from right
+        animationDirectionRef.current = 100;
+        setAnimationDirection(100);
+      }
+      // Clear the flags after animation
       setTimeout(() => {
         sessionStorage.removeItem('xai-forge-closing-to-hero');
+        sessionStorage.removeItem('xai-forge-closing-from-path');
       }, 500);
     } else if (isBackNav && pathnameChanged) {
       // Back navigation - slide from left
+      animationDirectionRef.current = -100;
       setAnimationDirection(-100);
       // Clear the flag after animation
       setTimeout(() => {
@@ -92,6 +126,7 @@ function AppRoutes() {
       }, 500);
     } else if (!isBackNav && pathnameChanged) {
       // Forward navigation - slide from right
+      animationDirectionRef.current = 100;
       setAnimationDirection(100);
     }
     
@@ -112,6 +147,95 @@ function AppRoutes() {
     previousPathForAnimationRef.current = location.pathname;
   }, [location.pathname]);
   
+  // Compute animation values synchronously based on sessionStorage flags
+  // Login/signup: always enter and exit from/to right (x: 100)
+  // Hero: exit left when login/signup enter, enter from left when login/signup exit
+  const animationValues = React.useMemo(() => {
+    const isClosingToHero = sessionStorage.getItem('xai-forge-closing-to-hero') === 'true';
+    const closingFromPath = sessionStorage.getItem('xai-forge-closing-from-path');
+    const isLoginOrSignup = closingFromPath === '/login' || closingFromPath === '/register';
+    const isCurrentlyOnLoginOrSignup = location.pathname === '/login' || location.pathname === '/register';
+    const isCurrentlyOnHero = location.pathname === '/';
+    
+    // Login/signup pages: always enter and exit from/to right
+    if (isCurrentlyOnLoginOrSignup) {
+      return {
+        initialX: 100,  // Always enter from right
+        exitX: 100       // Always exit to right
+      };
+    }
+    
+    // Hero page: when closing from login/signup, enter from left
+    if (isCurrentlyOnHero && isClosingToHero && isLoginOrSignup) {
+      return {
+        initialX: -100,  // Enter from left (opposite of login/signup exit)
+        exitX: -animationDirection
+      };
+    }
+    
+    // When on hero, always exit left when navigating to login/signup
+    // This ensures consistent behavior: hero exits left, login/signup enters from right
+    if (isCurrentlyOnHero) {
+      // Check if we just arrived at hero from login/signup (closing case)
+      // In that case, we already handled the entry animation above (enters from left)
+      const previousPath = previousPathnameRef.current;
+      const justArrivedFromLoginOrSignup = isClosingToHero && 
+                                          isLoginOrSignup && 
+                                          (previousPath === '/login' || previousPath === '/register');
+      
+      if (justArrivedFromLoginOrSignup) {
+        // We just arrived from login/signup - use the entry animation set above
+        // But still set exit left for future navigations
+        return {
+          initialX: -100,  // Enter from left (already handled above)
+          exitX: -100  // Exit left for next navigation to login/signup
+        };
+      }
+      
+      // For ALL cases on hero (initial load, normal navigation to login/signup, etc.)
+      // Hero should ALWAYS exit left - this is the default behavior
+      // This ensures consistency: hero always exits left, login/signup always enter from right
+      // Store in ref so it persists across location changes
+      heroExitXRef.current = -100;
+      return {
+        initialX: animationDirection,
+        exitX: heroExitXRef.current  // ALWAYS exit left when on hero (opposite of login/signup entry from right)
+      };
+    }
+    
+    if (isClosingToHero && !isLoginOrSignup) {
+      // Other pages closing to hero: exit left, entry from right
+      if (location.pathname === '/') {
+        return {
+          initialX: 100,
+          exitX: -animationDirection
+        };
+      } else {
+        return {
+          initialX: animationDirection,
+          exitX: -100
+        };
+      }
+    }
+    
+    // Default: use animationDirection
+    // But if we're coming from hero (previous path was '/'), default exit should be left
+    const previousPath = previousPathnameRef.current;
+    if (previousPath === '/') {
+      // Coming from hero - exit left by default
+      return {
+        initialX: animationDirection,
+        exitX: -100
+      };
+    }
+    
+    // Default: use animationDirection
+    return {
+      initialX: animationDirection,
+      exitX: -animationDirection
+    };
+  }, [location.pathname, animationDirection]);
+
   // Use location.key for reliable tracking - React Router provides unique keys for each navigation
   const navigationKey = shouldAnimate ? (location.key || `${location.pathname}-${Date.now()}`) : 'dashboard-layout';
   
@@ -119,9 +243,9 @@ function AppRoutes() {
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={navigationKey}
-        initial={shouldAnimate ? { opacity: 0, x: animationDirection } : false}
+        initial={shouldAnimate ? { opacity: 0, x: animationValues.initialX } : false}
         animate={shouldAnimate ? { opacity: 1, x: 0 } : { opacity: 1, x: 0 }}
-        exit={shouldAnimate ? { opacity: 0, x: -animationDirection } : false}
+        exit={shouldAnimate ? { opacity: 0, x: animationValues.exitX } : false}
         transition={shouldAnimate ? { duration: 0.4, ease: [0.22, 1, 0.36, 1] } : { duration: 0 }}
         className="w-full"
         style={{ 

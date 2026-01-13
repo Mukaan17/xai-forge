@@ -202,20 +202,24 @@ export function RegisterPage() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 relative">
-      {/* Close Button */}
-      <button
-        onClick={() => {
-          // Ensure flag is set before navigating
-          sessionStorage.setItem('xai-forge-navigated-to-hero', 'true');
-          // Set flag to indicate closing (exit to right)
-          sessionStorage.setItem('xai-forge-closing-to-hero', 'true');
-          navigate('/');
-        }}
-        className="absolute top-6 right-6 z-50 p-2 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 hover:bg-background hover:border-border transition-all duration-300"
-        aria-label="Close"
-      >
-        <X className="size-5 text-foreground hover:text-red-500 hover:rotate-90 transition-all duration-300" />
-      </button>
+      {/* Close Button with Circular Hover Region */}
+      <div className="absolute top-6 right-6 z-50 group w-20 h-20 flex items-center justify-center">
+        <button
+          onClick={() => {
+            // Ensure flag is set before navigating
+            sessionStorage.setItem('xai-forge-navigated-to-hero', 'true');
+            // Set flag to indicate closing (exit to right)
+            sessionStorage.setItem('xai-forge-closing-to-hero', 'true');
+            // Store the current pathname so we know which page we're closing from
+            sessionStorage.setItem('xai-forge-closing-from-path', location.pathname);
+            navigate('/');
+          }}
+          className="p-2 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 group-hover:bg-background group-hover:border-border transition-all duration-300"
+          aria-label="Close"
+        >
+          <X className="size-5 text-foreground group-hover:text-red-500 group-hover:rotate-90 transition-all duration-300" />
+        </button>
+      </div>
 
       {/* Left Content Section with Characters */}
       <div className="relative hidden lg:flex flex-col justify-between bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-12 text-primary-foreground">

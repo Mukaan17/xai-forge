@@ -114,7 +114,8 @@ const ScrambledTitle: React.FC = () => {
             phraseCount++
             if (phraseCount < maxPhrases) {
               counter++
-              setTimeout(next, 2000)
+              // Reduced delay between phrases: 1.2s instead of 2s
+              setTimeout(next, 1200)
             }
           })
         }
