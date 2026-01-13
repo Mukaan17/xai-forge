@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example</groupId>
+        <artifactId>backend</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>xai-application</artifactId>
+    <packaging>jar</packaging>
+    <name>XAI Application</name>
+    <description>Application services layer: command/query handlers, use cases</description>
+
+    <dependencies>
+        <!-- XAI Domain -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>xai-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <!-- XAI Infrastructure -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>xai-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <!-- XAI Common -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>xai-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <!-- Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        
+        <!-- Spring Transaction -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        
+        <!-- Tribuo ML (for model training) - Using tribuo-all pom which includes all modules transitively -->
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-all</artifactId>
+            <version>4.3.2</version>
+            <type>pom</type>
+        </dependency>
+        
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

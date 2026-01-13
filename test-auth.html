@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XAI-Forge Auth Test</title>
+</head>
+<body>
+    <h1>XAI-Forge Authentication Test</h1>
+    <button onclick="testAuth()">Authenticate & Navigate</button>
+    <div id="status"></div>
+    
+    <script>
+        async function testAuth() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = 'Authenticating...';
+            
+            try {
+                // Get token from API
+                const response = await fetch('http://localhost:8080/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'testuser', password: 'Test123!' })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Login failed: ' + response.status);
+                }
+                
+                const data = await response.json();
+                const token = data.token;
+                const user = data.user;
+                
+                // Set in localStorage
+                localStorage.setItem('token', token);
+                localStorage.setItem('auth-storage', JSON.stringify({
+                    state: {
+                        user: user,
+                        token: token,
+                        isAuthenticated: true
+                    },
+                    version: 0
+                }));
+                
+                statusDiv.innerHTML = '✅ Auth set! User: ' + user.username + '<br>Navigating to dashboard...';
+                
+                // Open dashboard in new window
+                window.open('http://localhost:3000/dashboard', '_blank');
+                
+            } catch (error) {
+                statusDiv.innerHTML = '❌ Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
