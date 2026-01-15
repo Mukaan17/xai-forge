@@ -30,10 +30,15 @@ public class XaiService {
     
     private final com.xaiforge.infrastructure.persistence.model.MLModelRepository modelRepository;
     private final XaiConfig xaiConfig;
+    private final LimeExplainer limeExplainer;
     
-    public XaiService(com.xaiforge.infrastructure.persistence.model.MLModelRepository modelRepository, XaiConfig xaiConfig) {
+    public XaiService(
+            com.xaiforge.infrastructure.persistence.model.MLModelRepository modelRepository, 
+            XaiConfig xaiConfig,
+            LimeExplainer limeExplainer) {
         this.modelRepository = modelRepository;
         this.xaiConfig = xaiConfig;
+        this.limeExplainer = limeExplainer;
     }
     
     public PredictionResponse predict(Long modelId, Map<String, String> inputData, Long userId) {
@@ -230,9 +235,37 @@ public class XaiService {
     
     private ExplanationResponse generateExplanation(Prediction<?> prediction, Example<?> example, 
                                                    Map<String, String> inputData, MLModel mlModel) {
-        // Generate feature contributions
-        List<ExplanationResponse.FeatureImpact> contributions = 
-            generateLimeExplanation(mlModel, example, mlModel.getFeatureNames(), mlModel.getModelType());
+        // Generate feature contributions using proper LIME algorithm
+        Model<?> model;
+        try {
+            model = deserializeModel(mlModel.getSerializedModelPath());
+        } catch (Exception e) {
+            log.warn("Could not load model for LIME, using fallback: {}", e.getMessage());
+            List<ExplanationResponse.FeatureImpact> contributions = 
+                generateLimeExplanation(mlModel, example, mlModel.getFeatureNames(), mlModel.getModelType());
+            return buildExplanationResponse(contributions, prediction, mlModel, inputData);
+        }
+        
+        List<ExplanationResponse.FeatureImpact> contributions;
+        try {
+            // Use proper LIME algorithm
+            contributions = limeExplainer.explain(model, example, prediction, mlModel, 5000);
+        } catch (Exception e) {
+            log.warn("LIME explanation failed, falling back to simplified method: {}", e.getMessage());
+            // Fallback to simplified explanation
+            contributions = generateLimeExplanation(mlModel, example, mlModel.getFeatureNames(), mlModel.getModelType());
+        }
+        
+        return buildExplanationResponse(contributions, prediction, mlModel, inputData);
+    }
+    
+    private static final int DEFAULT_NUM_SAMPLES = 5000;
+    
+    private ExplanationResponse buildExplanationResponse(
+            List<ExplanationResponse.FeatureImpact> contributions,
+            Prediction<?> prediction,
+            MLModel mlModel,
+            Map<String, String> inputData) {
         
         // Check if model is degenerate (all contributions are zero or very small)
         boolean isDegenerate = contributions != null && !contributions.isEmpty() &&

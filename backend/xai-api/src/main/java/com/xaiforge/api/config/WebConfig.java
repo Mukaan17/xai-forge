@@ -6,7 +6,9 @@ import com.xaiforge.infrastructure.cache.RateLimitService;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -31,12 +33,21 @@ public class WebConfig implements WebMvcConfigurer {
     }
     
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/api/**")
             .allowedOrigins("http://localhost:3000")
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .allowCredentials(true);
+    }
+    
+    @Override
+    public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
+        // Configure static resource handling to exclude API routes
+        // API routes should be handled by controllers, not static resources
+        registry.addResourceHandler("/static/**", "/public/**")
+            .addResourceLocations("classpath:/static/", "classpath:/public/")
+            .resourceChain(false);
     }
 }
 

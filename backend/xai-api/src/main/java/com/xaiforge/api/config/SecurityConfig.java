@@ -1,5 +1,6 @@
 package com.xaiforge.api.config;
 
+import com.xaiforge.api.filter.SecurityHeadersFilter;
 import com.xaiforge.infrastructure.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -29,10 +31,18 @@ public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
+    private final SecurityHeadersConfig securityHeadersConfig;
+    private final SecurityHeadersFilter securityHeadersFilter;
     
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailsService userDetailsService) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter, 
+            UserDetailsService userDetailsService,
+            SecurityHeadersConfig securityHeadersConfig,
+            SecurityHeadersFilter securityHeadersFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
+        this.securityHeadersConfig = securityHeadersConfig;
+        this.securityHeadersFilter = securityHeadersFilter;
     }
     
     @Value("${app.cors.allowed-origins}")
@@ -69,13 +79,38 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .headers(headers -> headers
-                .frameOptions(frameOptions -> frameOptions.deny())
-                .contentTypeOptions(contentTypeOptions -> contentTypeOptions.and())
-                .httpStrictTransportSecurity(hstsConfig -> hstsConfig
-                    .maxAgeInSeconds(31536000)
-                )
-            )
+            .headers(headers -> {
+                headers.frameOptions(frameOptions -> frameOptions.deny());
+                headers.contentTypeOptions(contentTypeOptions -> {});
+                
+                // HSTS Configuration
+                if (securityHeadersConfig.isHstsEnabled()) {
+                    headers.httpStrictTransportSecurity(hstsConfig -> {
+                        hstsConfig.maxAgeInSeconds(securityHeadersConfig.getHstsMaxAge());
+                        // Note: includeSubdomains is automatically included in Spring Security 6+
+                        // The header value will include it based on the configuration
+                    });
+                }
+                
+                // Referrer Policy
+                headers.referrerPolicy(referrerPolicy -> 
+                    referrerPolicy.policy(securityHeadersConfig.getReferrerPolicyValue())
+                );
+                
+                // XSS Protection (legacy, but still useful)
+                headers.xssProtection(xssConfig -> 
+                    xssConfig.headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)
+                );
+                
+                // Content Security Policy
+                String csp = securityHeadersConfig.getContentSecurityPolicy();
+                if (csp != null && !csp.isEmpty()) {
+                    headers.contentSecurityPolicy(cspConfig -> 
+                        cspConfig.policyDirectives(csp)
+                    );
+                }
+            })
+            .addFilterBefore(securityHeadersFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();

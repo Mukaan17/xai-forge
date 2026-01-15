@@ -18,6 +18,23 @@ export interface ValidationError {
   rejectedValue?: unknown;
 }
 
+export interface PaginatedResponse<T> {
+  content: T[];
+  currentPage: number;
+  totalItems: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+export interface PaginationParams {
+  page?: number;
+  size?: number;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -60,4 +77,3 @@ export class ApiError extends Error {
     return this.status === 429;
   }
 }
-

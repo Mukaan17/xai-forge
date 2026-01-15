@@ -8,6 +8,8 @@ import { Label } from '@/shared/components/ui/label';
 import { Upload, X } from 'lucide-react';
 import { toast } from '@/shared/lib/toast';
 import { DatasetDto } from '@/shared/types/dataset.types';
+import { useFocusManagement } from '@/shared/hooks/useFocusManagement';
+import { LiveRegion } from '@/shared/components/accessibility/LiveRegion';
 
 interface UploadModalProps {
   onSuccess?: () => void;
@@ -16,7 +18,9 @@ interface UploadModalProps {
 export function UploadModal({ onSuccess }: UploadModalProps) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [liveMessage, setLiveMessage] = useState('');
   const queryClient = useQueryClient();
+  const dialogRef = useFocusManagement(open, true);
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -38,14 +42,48 @@ export function UploadModal({ onSuccess }: UploadModalProps) {
 
       return response.json() as Promise<DatasetDto>;
     },
+    onMutate: async (file) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['datasets'] });
+
+      // Snapshot previous value
+      const previousDatasets = queryClient.getQueryData(['datasets']);
+
+      // Optimistically update with temporary dataset
+      const optimisticDataset: DatasetDto = {
+        id: Date.now(), // Temporary ID
+        fileName: file.name,
+        filePath: '',
+        uploadDate: new Date().toISOString(),
+        headers: [],
+        rowCount: 0,
+        ownerId: 0,
+      };
+
+      queryClient.setQueryData(['datasets'], (old: any) => {
+        if (!old) return { content: [optimisticDataset], totalElements: 1 };
+        return {
+          ...old,
+          content: [optimisticDataset, ...(old.content || [])],
+          totalElements: (old.totalElements || 0) + 1,
+        };
+      });
+
+      return { previousDatasets };
+    },
     onSuccess: (data) => {
       toast.success('Dataset uploaded successfully!');
+      setLiveMessage(`Dataset ${data.fileName} uploaded successfully`);
       queryClient.invalidateQueries({ queryKey: ['datasets'] });
       setOpen(false);
       setFile(null);
       onSuccess?.();
     },
-    onError: (error: Error) => {
+    onError: (error: Error, file, context) => {
+      // Rollback on error
+      if (context?.previousDatasets) {
+        queryClient.setQueryData(['datasets'], context.previousDatasets);
+      }
       toast.error(`Upload failed: ${error.message}`);
     },
   });
@@ -53,8 +91,12 @@ export function UploadModal({ onSuccess }: UploadModalProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (!selectedFile.name.toLowerCase().endsWith('.csv')) {
-        toast.error('Only CSV files are allowed');
+      const lowerName = selectedFile.name.toLowerCase();
+      const isValidFile = lowerName.endsWith('.csv') || 
+                          lowerName.endsWith('.xlsx') || 
+                          lowerName.endsWith('.xls');
+      if (!isValidFile) {
+        toast.error('Only CSV, XLSX, and XLS files are allowed');
         return;
       }
       setFile(selectedFile);
@@ -71,27 +113,33 @@ export function UploadModal({ onSuccess }: UploadModalProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Upload className="w-4 h-4 mr-2" />
-          Upload Dataset
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
+    <>
+      <LiveRegion message={liveMessage} priority="polite" />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button aria-label="Upload a new dataset">
+            <Upload className="w-4 h-4 mr-2" aria-hidden="true" />
+            Upload Dataset
+          </Button>
+        </DialogTrigger>
+        <DialogContent 
+          ref={dialogRef as React.RefObject<HTMLDivElement>}
+          aria-labelledby="upload-dialog-title"
+          aria-describedby="upload-dialog-description"
+        >
         <DialogHeader>
           <DialogTitle>Upload Dataset</DialogTitle>
           <DialogDescription>
-            Upload a CSV file to use for training models. The file should have a header row.
+            Upload a CSV, XLSX, or XLS file to use for training models. The file should have a header row.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="file">CSV File</Label>
+            <Label htmlFor="file">Dataset File (CSV, XLSX, XLS)</Label>
             <Input
               id="file"
               type="file"
-              accept=".csv"
+              accept=".csv,.xlsx,.xls"
               onChange={handleFileChange}
               disabled={uploadMutation.isPending}
             />
@@ -124,8 +172,9 @@ export function UploadModal({ onSuccess }: UploadModalProps) {
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

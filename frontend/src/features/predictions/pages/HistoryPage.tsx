@@ -10,6 +10,8 @@ import { Skeleton } from '@/shared/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/api/client';
 import { useNavigate } from 'react-router-dom';
+import { PaginatedResponse } from '@/shared/types/api.types';
+import { PaginationControls } from '@/shared/components/PaginationControls';
 
 interface PredictionRecord {
   id: number;
@@ -29,16 +31,31 @@ export function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [modelFilter, setModelFilter] = useState('all');
   const [timeFilter, setTimeFilter] = useState('30');
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 20;
 
-  const { data: predictions = [], isLoading } = useQuery<PredictionRecord[]>({
-    queryKey: ['prediction-history', timeFilter],
+  const { data: predictionsResponse, isLoading } = useQuery<PaginatedResponse<PredictionRecord> | PredictionRecord[]>({
+    queryKey: ['prediction-history', timeFilter, currentPage],
     queryFn: async () => {
-      const response = await apiClient.get<PredictionRecord[]>('/v1/predictions/history', {
-        params: { days: timeFilter === 'all' ? undefined : parseInt(timeFilter) }
+      const response = await apiClient.get<PaginatedResponse<PredictionRecord> | PredictionRecord[]>('/v1/predictions/history', {
+        params: { 
+          days: timeFilter === 'all' ? undefined : parseInt(timeFilter),
+          page: currentPage,
+          size: pageSize,
+        }
       });
       return response;
     },
   });
+
+  // Handle both paginated and non-paginated responses
+  const predictions = Array.isArray(predictionsResponse) 
+    ? predictionsResponse 
+    : predictionsResponse?.content || [];
+  
+  const pagination = Array.isArray(predictionsResponse) 
+    ? null 
+    : predictionsResponse;
 
   const filteredPredictions = predictions.filter(pred => {
     const matchesSearch = searchQuery === '' || 
@@ -124,7 +141,7 @@ export function HistoryPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={timeFilter} onValueChange={setTimeFilter}>
+              <Select value={timeFilter} onValueChange={handleTimeFilterChange}>
             <SelectTrigger className="w-full sm:w-48">
               <SelectValue />
             </SelectTrigger>
@@ -315,13 +332,20 @@ export function HistoryPage() {
               </table>
             </div>
 
-            {/* Pagination */}
-            <div className="flex items-center justify-between mt-6 pt-6 border-t border-border">
-              <p className="text-sm text-muted-foreground">Showing {filteredPredictions.length} prediction{filteredPredictions.length !== 1 ? 's' : ''}</p>
-            </div>
           </>
         )}
       </Card>
+      
+      {pagination && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          className="mt-6"
+        />
+      )}
     </div>
   );
 }

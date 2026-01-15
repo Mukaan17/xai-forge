@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { User, Shield, Bell, Palette, Plug, Database, Download, AlertTriangle, Laptop, Smartphone, Monitor, Sun, Moon, Check, Copy, Plus } from 'lucide-react';
+import { User, Shield, Bell, Palette, Plug, Database, Download, AlertTriangle, Laptop, Smartphone, Monitor, Sun, Moon, Check, Copy, Plus, LogOut, Trash2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -14,8 +15,11 @@ import { DestructiveButton } from '@/shared/components/ui/destructive-button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { settingsApi } from '../api/settingsApi';
+import { sessionsApi, SessionDto } from '../api/sessionsApi';
 import { toast } from '@/shared/lib/toast';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '@/shared/hooks/useTheme';
+import { DataExportSection } from '@/features/export/components/DataExportSection';
 
 export function SettingsPage() {
   const { user, logout } = useAuth();
@@ -54,15 +58,63 @@ export function SettingsPage() {
     tips: { email: false, inApp: true, push: false },
   });
   
-  // Appearance state
-  const [theme, setTheme] = useState('dark');
-  const [accentColor, setAccentColor] = useState('#00d9ff');
+  // Theme management
+  const { theme, accentColor, setTheme, setAccentColor, isLoading: isSavingTheme } = useTheme();
   
   // API Keys state (placeholder for now)
   const [apiKeys] = useState([
     { id: '1', name: 'Production Key', key: 'xai_live_sk••••••••••••••••••3f2a', created: 'Dec 1', lastUsed: '2 hours ago' },
     { id: '2', name: 'Development Key', key: 'xai_test_sk••••••••••••••••••8b1c', created: 'Nov 15', lastUsed: '5 days ago' },
   ]);
+
+  // Sessions
+  const queryClient = useQueryClient();
+  const { data: sessions = [], isLoading: isLoadingSessions } = useQuery<SessionDto[]>({
+    queryKey: ['sessions'],
+    queryFn: sessionsApi.getAll,
+  });
+
+  const revokeSessionMutation = useMutation({
+    mutationFn: sessionsApi.revoke,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      toast.success('Session revoked successfully');
+    },
+    onError: () => {
+      toast.error('Failed to revoke session');
+    },
+  });
+
+  const revokeAllOthersMutation = useMutation({
+    mutationFn: sessionsApi.revokeAllOthers,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      toast.success('All other sessions revoked');
+    },
+    onError: () => {
+      toast.error('Failed to revoke sessions');
+    },
+  });
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  };
+
+  const getDeviceIcon = (deviceInfo: string) => {
+    if (deviceInfo?.toLowerCase().includes('mobile')) return <Smartphone className="w-5 h-5" />;
+    if (deviceInfo?.toLowerCase().includes('windows') || deviceInfo?.toLowerCase().includes('macos') || deviceInfo?.toLowerCase().includes('linux')) return <Monitor className="w-5 h-5" />;
+    return <Laptop className="w-5 h-5" />;
+  };
   
   useEffect(() => {
     if (user) {
@@ -136,9 +188,8 @@ export function SettingsPage() {
   const handleSavePreferences = async () => {
     setIsLoading(true);
     try {
+      // Theme is saved automatically via useTheme hook
       await settingsApi.updatePreferences({
-        theme,
-        accentColor,
         notificationPreferences: JSON.stringify(notificationPrefs),
       });
       toast.success('Preferences saved', {
@@ -395,23 +446,76 @@ export function SettingsPage() {
           </Card>
 
           <Card className="p-6">
-            <h3 className="mb-6">Active Sessions</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Monitor className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">Current Session</p>
-                      <Badge variant="outline" className="border-primary/30 text-primary">Current</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Now</p>
-                  </div>
-                </div>
-              </div>
+            <div className="flex items-center justify-between mb-6">
+              <h3>Active Sessions</h3>
+              {sessions.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => revokeAllOthersMutation.mutate()}
+                  disabled={revokeAllOthersMutation.isPending}
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Revoke All Others
+                </Button>
+              )}
             </div>
+            {isLoadingSessions ? (
+              <div className="space-y-4">
+                {[1, 2].map((i) => (
+                  <div key={i} className="flex items-center justify-between p-4 border border-border rounded-lg animate-pulse">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-muted" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 bg-muted rounded" />
+                        <div className="h-3 w-24 bg-muted rounded" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : sessions.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No active sessions</p>
+            ) : (
+              <div className="space-y-4">
+                {sessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="flex items-center justify-between p-4 border border-border rounded-lg hover:border-primary/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                        {getDeviceIcon(session.deviceInfo)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{session.deviceInfo || 'Unknown Device'}</p>
+                          {session.isCurrentSession && (
+                            <Badge variant="outline" className="border-primary/30 text-primary">Current</Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span>{session.ipAddress}</span>
+                          {session.location && <span>• {session.location}</span>}
+                          <span>• Last active {formatDate(session.lastActiveAt)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {!session.isCurrentSession && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => revokeSessionMutation.mutate(session.id)}
+                        disabled={revokeSessionMutation.isPending}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
         </TabsContent>
 
@@ -502,7 +606,12 @@ export function SettingsPage() {
         <TabsContent value="appearance" className="space-y-6">
           <Card className="p-6">
             <h3 className="mb-6">Theme</h3>
-            <RadioGroup value={theme} onValueChange={setTheme} className="grid grid-cols-3 gap-4">
+            <RadioGroup 
+              value={theme} 
+              onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')} 
+              className="grid grid-cols-3 gap-4"
+              disabled={isSavingTheme}
+            >
               {[
                 { id: 'dark', label: 'Dark Mode', icon: Moon },
                 { id: 'light', label: 'Light Mode', icon: Sun },
@@ -538,6 +647,7 @@ export function SettingsPage() {
                 <button
                   key={color.id}
                   onClick={() => setAccentColor(color.color)}
+                  disabled={isSavingTheme}
                   className={`w-12 h-12 rounded-full border-2 hover:scale-110 transition-transform ${
                     accentColor === color.color ? 'border-white ring-2 ring-offset-2' : 'border-border'
                   }`}
@@ -624,14 +734,7 @@ export function SettingsPage() {
             </div>
           </Card>
 
-          <Card className="p-6">
-            <h3 className="mb-6">Export Your Data</h3>
-            <p className="text-muted-foreground mb-4">Download a copy of all your data from XAI-Forge.</p>
-            <Button onClick={() => toast.info('Data export coming soon')} variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Request Data Export
-            </Button>
-          </Card>
+          <DataExportSection />
         </TabsContent>
 
         {/* Danger Zone Tab */}

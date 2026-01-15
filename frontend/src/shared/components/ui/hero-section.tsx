@@ -218,9 +218,8 @@ export function HeroSection() {
             // No need to do anything, heroFadeIn is already true from initial state
         } else {
             // Page reload or initial load - show loading screen with same sequence
-            // Reduced timing: ~1s per phrase scramble + 1.2s delay = ~2.2s per phrase
-            // 3 phrases = ~6.6s, add 0.8s buffer for "Made Easy" to complete = ~5.4s total
-            // Actually: phrase1 (~1s) + delay (1.2s) + phrase2 (~1s) + delay (1.2s) + phrase3 (~0.6s) + buffer (0.8s) = ~5.8s
+            // Timing: phrase1 (~1s) + delay (1.2s) + phrase2 (~1s) + delay (1.2s) + phrase3 (~0.6s) + extra display time (1.5s) = ~7.5s
+            // Extended display time for "Made Easy" so users can see it longer for better UX
             const timer = setTimeout(() => {
                 setFadeOut(true)
                 // Start hero animation as loading screen starts fading out
@@ -229,7 +228,7 @@ export function HeroSection() {
                 setTimeout(() => {
                     setShowLoading(false)
                 }, 1500) // Wait for fade-out transition to complete
-            }, 5800) // Reduced from 7500ms to 5800ms
+            }, 7500) // Extended from 5800ms to 7500ms to show "Made Easy" longer
 
             return () => {
                 clearTimeout(timer)
@@ -435,10 +434,10 @@ const HeroHeader = () => {
                             </button>
                         </div>
 
-                        <div className="absolute inset-0 m-auto hidden size-fit lg:block">
+                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden lg:block">
                             <ul className="flex gap-8 text-sm">
                                 {menuItems.map((item, index) => (
-                                    <li key={index}>
+                                    <li key={index} className="flex items-center">
                                         <a
                                             href={item.href}
                                             onClick={(e) => {
@@ -453,7 +452,7 @@ const HeroHeader = () => {
                                                     }
                                                 }
                                             }}
-                                            className="text-muted-foreground hover:text-accent-foreground block duration-150 cursor-pointer">
+                                            className="text-muted-foreground hover:text-accent-foreground flex items-center duration-150 cursor-pointer">
                                             <span>{item.name}</span>
                                         </a>
                                     </li>

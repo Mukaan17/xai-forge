@@ -57,6 +57,19 @@ public class MLModel {
     @Column(name = "f1_score")
     private Double f1Score;
     
+    // Regression metrics
+    @Column(name = "mse")
+    private Double mse;
+    
+    @Column(name = "rmse")
+    private Double rmse;
+    
+    @Column(name = "mae")
+    private Double mae;
+    
+    @Column(name = "r2_score")
+    private Double r2Score;
+    
     @Column(name = "training_time")
     private Long trainingTime; // in seconds
     

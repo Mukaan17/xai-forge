@@ -1,23 +1,38 @@
 import * as React from 'react';
+import { Suspense, lazy } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
 import { ToastProvider } from '@/shared/components/ui/toast';
 import { queryClient } from '@/shared/lib/query/queryClient';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { LoginPage } from '@/features/auth/pages/LoginPage';
-import { RegisterPage } from '@/features/auth/pages/RegisterPage';
-import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
-import { LandingPage } from '@/features/landing/pages/LandingPage';
-import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
-import { DatasetsPage } from '@/features/datasets/pages/DatasetsPage';
-import { ModelsPage } from '@/features/models/pages/ModelsPage';
-import { PredictionsPage } from '@/features/predictions/pages/PredictionsPage';
-import { HistoryPage } from '@/features/predictions/pages/HistoryPage';
-import { ActivityLogPage } from '@/features/activity/pages/ActivityLogPage';
-import { SettingsPage } from '@/features/settings/pages/SettingsPage';
-import { NotFoundPage } from '@/features/error/pages/NotFoundPage';
 import { Navigation } from '@/shared/components/layout/Navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '@/shared/hooks/useTheme';
+import { Loader2 } from 'lucide-react';
+
+// Lazy load pages for code splitting
+const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage').then(m => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage').then(m => ({ default: m.RegisterPage })));
+const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
+const VerifyEmailPage = lazy(() => import('@/features/auth/pages/VerifyEmailPage').then(m => ({ default: m.VerifyEmailPage })));
+const LandingPage = lazy(() => import('@/features/landing/pages/LandingPage').then(m => ({ default: m.LandingPage })));
+const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
+const DatasetsPage = lazy(() => import('@/features/datasets/pages/DatasetsPage').then(m => ({ default: m.DatasetsPage })));
+const ModelsPage = lazy(() => import('@/features/models/pages/ModelsPage').then(m => ({ default: m.ModelsPage })));
+const TrainModelPage = lazy(() => import('@/features/models/pages/TrainModelPage').then(m => ({ default: m.TrainModelPage })));
+const ModelDetailsPage = lazy(() => import('@/features/models/pages/ModelDetailsPage').then(m => ({ default: m.ModelDetailsPage })));
+const PredictionsPage = lazy(() => import('@/features/predictions/pages/PredictionsPage').then(m => ({ default: m.PredictionsPage })));
+const HistoryPage = lazy(() => import('@/features/predictions/pages/HistoryPage').then(m => ({ default: m.HistoryPage })));
+const ActivityLogPage = lazy(() => import('@/features/activity/pages/ActivityLogPage').then(m => ({ default: m.ActivityLogPage })));
+const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const NotFoundPage = lazy(() => import('@/features/error/pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -37,6 +52,9 @@ function AppRoutes() {
   const animationDirectionRef = React.useRef(100);
   const heroExitDirectionRef = React.useRef<number | null>(null);
   const heroExitXRef = React.useRef<number>(-100); // Default: exit left
+  
+  // Initialize theme
+  useTheme();
   
   // Helper function to check if a path is a dashboard route
   const isDashboardRoutePath = (path: string) => {
@@ -258,7 +276,9 @@ function AppRoutes() {
             path="/" 
             element={
               <PublicRoute>
-                <LandingPage />
+                <Suspense fallback={<PageLoader />}>
+                  <LandingPage />
+                </Suspense>
               </PublicRoute>
             } 
           />
@@ -266,7 +286,9 @@ function AppRoutes() {
             path="/login" 
             element={
               <PublicRoute>
-                <LoginPage />
+                <Suspense fallback={<PageLoader />}>
+                  <LoginPage />
+                </Suspense>
               </PublicRoute>
             } 
           />
@@ -274,7 +296,9 @@ function AppRoutes() {
           path="/register" 
           element={
             <PublicRoute>
-              <RegisterPage />
+              <Suspense fallback={<PageLoader />}>
+                <RegisterPage />
+              </Suspense>
             </PublicRoute>
           } 
         />
@@ -282,7 +306,19 @@ function AppRoutes() {
           path="/forgot-password" 
           element={
             <PublicRoute>
-              <ForgotPasswordPage />
+              <Suspense fallback={<PageLoader />}>
+                <ForgotPasswordPage />
+              </Suspense>
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/verify-email" 
+          element={
+            <PublicRoute>
+              <Suspense fallback={<PageLoader />}>
+                <VerifyEmailPage />
+              </Suspense>
             </PublicRoute>
           } 
         />
@@ -296,19 +332,69 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/datasets" element={<DatasetsPage />} />
-        <Route path="/datasets/*" element={<DatasetsPage />} />
-        <Route path="/models" element={<ModelsPage />} />
-        <Route path="/models/*" element={<ModelsPage />} />
-        <Route path="/predictions" element={<PredictionsPage />} />
-        <Route path="/predictions/history" element={<HistoryPage />} />
-        <Route path="/activity" element={<ActivityLogPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/dashboard" element={
+          <Suspense fallback={<PageLoader />}>
+            <DashboardPage />
+          </Suspense>
+        } />
+        <Route path="/datasets" element={
+          <Suspense fallback={<PageLoader />}>
+            <DatasetsPage />
+          </Suspense>
+        } />
+        <Route path="/datasets/*" element={
+          <Suspense fallback={<PageLoader />}>
+            <DatasetsPage />
+          </Suspense>
+        } />
+        <Route path="/models" element={
+          <Suspense fallback={<PageLoader />}>
+            <ModelsPage />
+          </Suspense>
+        } />
+        <Route path="/models/train" element={
+          <Suspense fallback={<PageLoader />}>
+            <TrainModelPage />
+          </Suspense>
+        } />
+        <Route path="/models/:id" element={
+          <Suspense fallback={<PageLoader />}>
+            <ModelDetailsPage />
+          </Suspense>
+        } />
+        <Route path="/models/*" element={
+          <Suspense fallback={<PageLoader />}>
+            <ModelsPage />
+          </Suspense>
+        } />
+        <Route path="/predictions" element={
+          <Suspense fallback={<PageLoader />}>
+            <PredictionsPage />
+          </Suspense>
+        } />
+        <Route path="/predictions/history" element={
+          <Suspense fallback={<PageLoader />}>
+            <HistoryPage />
+          </Suspense>
+        } />
+        <Route path="/activity" element={
+          <Suspense fallback={<PageLoader />}>
+            <ActivityLogPage />
+          </Suspense>
+        } />
+        <Route path="/settings" element={
+          <Suspense fallback={<PageLoader />}>
+            <SettingsPage />
+          </Suspense>
+        } />
       </Route>
       <Route
         path="*"
-        element={<NotFoundPage />}
+        element={
+          <Suspense fallback={<PageLoader />}>
+            <NotFoundPage />
+          </Suspense>
+        }
       />
         </Routes>
       </motion.div>

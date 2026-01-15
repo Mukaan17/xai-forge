@@ -2,6 +2,8 @@ package com.xaiforge.infrastructure.persistence.model;
 
 import com.xaiforge.domain.dataset.entity.Dataset;
 import com.xaiforge.domain.model.entity.MLModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -13,6 +15,8 @@ import java.util.Optional;
 public interface MLModelRepository extends JpaRepository<MLModel, Long> {
     
     List<MLModel> findByDatasetOwnerId(Long ownerId);
+    
+    Page<MLModel> findByDatasetOwnerIdOrderByTrainingDateDesc(Long ownerId, Pageable pageable);
     
     Optional<MLModel> findByIdAndDatasetOwnerId(Long id, Long ownerId);
     

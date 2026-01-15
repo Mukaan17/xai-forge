@@ -7,6 +7,12 @@ import { Upload, BrainCircuit, Target, TrendingUp, Database } from 'lucide-react
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { OnboardingFlow } from '@/features/OnboardingFlow';
+import { WeeklyUsageChart } from '../components/WeeklyUsageChart';
+import { ModelTypeChart } from '../components/ModelTypeChart';
+import { DatasetSizesChart } from '../components/DatasetSizesChart';
+import { ActivityAreaChart } from '../components/ActivityAreaChart';
+import { GradientText } from '@/shared/components/ui/gradient-text';
+import { motion } from 'framer-motion';
 
 interface DashboardStats {
   totalDatasets: number;
@@ -97,12 +103,19 @@ export function DashboardPage() {
           onSkip={() => setShowOnboarding(false)}
         />
       )}
-      <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+      <motion.div 
+        className="space-y-6 sm:space-y-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", bounce: 0.3, duration: 1.5 }}
+      >
       {/* Welcome Banner */}
       <Card className="p-4 sm:p-6 bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent border-primary/20">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-semibold mb-1">Welcome back</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold mb-1">
+              Welcome back
+            </h1>
             <p className="text-muted-foreground text-sm sm:text-base">Here's your ML workspace overview</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
@@ -127,26 +140,61 @@ export function DashboardPage() {
         {kpiData.map((kpi, index) => {
           const Icon = kpi.icon;
           return (
-            <Card key={index} className="p-6 hover:border-primary/30 transition-colors">
-              <div className="flex items-start justify-between mb-4">
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${kpi.color} from-current/10 to-current/5 flex items-center justify-center`}>
-                  <Icon className={`w-6 h-6 ${kpi.color}`} />
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20, filter: "blur(12px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{
+                type: "spring",
+                bounce: 0.3,
+                duration: 1.5,
+                delay: index * 0.1,
+              }}
+            >
+              <Card className="p-6 hover:border-primary/30 transition-all duration-300">
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${kpi.color} from-current/10 to-current/5 flex items-center justify-center transition-transform duration-300 hover:scale-110`}>
+                    <Icon className={`w-6 h-6 ${kpi.color}`} />
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-muted-foreground">{kpi.label}</p>
-                <p className="text-3xl font-semibold tracking-tight">{kpi.value}</p>
-              </div>
-            </Card>
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">{kpi.label}</p>
+                  <p className="text-3xl font-semibold tracking-tight">
+                    <GradientText variant="primary">{kpi.value}</GradientText>
+                  </p>
+                </div>
+              </Card>
+            </motion.div>
           );
         })}
       </div>
 
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <WeeklyUsageChart data={stats.weeklyUsage} />
+        <ModelTypeChart data={stats.modelsByType} />
+      </div>
+
+      {/* Additional Charts */}
+      {Object.keys(stats.datasetSizes).length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <DatasetSizesChart data={stats.datasetSizes} />
+          <ActivityAreaChart data={stats.weeklyUsage} />
+        </div>
+      )}
+
       {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-        </CardHeader>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", bounce: 0.3, duration: 1.5, delay: 0.4 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <GradientText variant="primary">Recent Activity</GradientText>
+            </CardTitle>
+          </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {stats.recentActivity.length > 0 ? (
@@ -166,7 +214,8 @@ export function DashboardPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </motion.div>
+    </motion.div>
     </>
   );
 }

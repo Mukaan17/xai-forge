@@ -30,7 +30,7 @@ export function useAuth() {
     onSuccess: (data) => {
       localStorage.setItem('token', data.token);
       setAuth(data.user, data.token);
-      toast.success('Account created successfully!');
+      toast.success('Account created successfully! Please check your email to verify your account.');
       navigate('/dashboard');
     },
     onError: (error) => {

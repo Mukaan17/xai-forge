@@ -44,7 +44,7 @@
     "react-dropzone": "^14.2.0",
     "react-hook-form": "^7.55.0",
     "react-router-dom": "^6.3.0",
-    "recharts": "^2.10.3",
+    "recharts": "^2.15.4",
     "sonner": "^1.0.0",
     "tailwind-merge": "^2.0.0",
     "web-vitals": "^2.1.4",

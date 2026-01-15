@@ -6,13 +6,15 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Checkbox } from '@/shared/components/ui/checkbox';
-import { Eye, EyeOff, X } from 'lucide-react';
+import { Eye, EyeOff, X, AlertCircle } from 'lucide-react';
 import { AnimatedCharacters } from '@/shared/components/ui/animated-characters';
 import { ResetPasswordForm } from '@/shared/components/ui/reset-password-form';
 import { authApi } from '../api/authApi';
 import { toast } from '@/shared/lib/toast';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useFormValidation, validationRules } from '@/shared/hooks/useFormValidation';
+import { FormField } from '@/shared/components/ui/form-field';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -46,6 +48,33 @@ export function LoginPage() {
   const [registerPassword, setRegisterPassword] = useState('');
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [isRegisterTyping, setIsRegisterTyping] = useState(false);
+
+  // Form validation
+  const loginValidation = useFormValidation({
+    username: {
+      required: true,
+      rules: [validationRules.notEmpty],
+    },
+    password: {
+      required: true,
+      rules: [validationRules.notEmpty],
+    },
+  });
+
+  const registerValidation = useFormValidation({
+    registerUsername: {
+      required: true,
+      rules: [validationRules.username],
+    },
+    registerEmail: {
+      required: true,
+      rules: [validationRules.email],
+    },
+    registerPassword: {
+      required: true,
+      rules: [validationRules.password],
+    },
+  });
 
   // Initialize state based on URL
   React.useEffect(() => {
@@ -85,6 +114,8 @@ export function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const isValid = loginValidation.validateForm({ username, password });
+    if (!isValid) return;
     login({ username, password });
   };
 
@@ -98,6 +129,12 @@ export function LoginPage() {
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const isValid = registerValidation.validateForm({
+      registerUsername,
+      registerEmail,
+      registerPassword,
+    });
+    if (!isValid) return;
     register({ username: registerUsername, email: registerEmail, password: registerPassword });
   };
 
@@ -328,34 +365,64 @@ export function LoginPage() {
               {/* Login Form */}
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-sm font-medium">Username</Label>
+                  <Label htmlFor="username" className={cn("text-sm font-medium", loginValidation.errors.username && "text-destructive")}>
+                    Username
+                  </Label>
                   <Input
                     id="username"
                     type="text"
                     placeholder="Enter your username"
                     value={username}
                     autoComplete="off"
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      loginValidation.validateField('username', e.target.value);
+                    }}
                     onFocus={() => setIsTyping(true)}
-                    onBlur={() => setIsTyping(false)}
+                    onBlur={() => {
+                      setIsTyping(false);
+                      loginValidation.validateField('username', username);
+                    }}
                     required
                     disabled={isLoading}
-                    className="h-12 bg-background border-border/60 focus:border-primary"
+                    className={cn(
+                      "h-12 bg-background border-border/60 focus:border-primary",
+                      loginValidation.errors.username && "border-destructive focus-visible:ring-destructive"
+                    )}
+                    aria-invalid={!!loginValidation.errors.username}
+                    aria-describedby={loginValidation.errors.username ? "username-error" : undefined}
                   />
+                  {loginValidation.errors.username && (
+                    <div id="username-error" className="flex items-center gap-1.5 text-sm text-destructive" role="alert">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{loginValidation.errors.username}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                  <Label htmlFor="password" className={cn("text-sm font-medium", loginValidation.errors.password && "text-destructive")}>
+                    Password
+                  </Label>
                   <div className="relative">
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        loginValidation.validateField('password', e.target.value);
+                      }}
+                      onBlur={() => loginValidation.validateField('password', password)}
                       required
                       disabled={isLoading}
-                      className="h-12 pr-10 bg-background border-border/60 focus:border-primary"
+                      className={cn(
+                        "h-12 pr-10 bg-background border-border/60 focus:border-primary",
+                        loginValidation.errors.password && "border-destructive focus-visible:ring-destructive"
+                      )}
+                      aria-invalid={!!loginValidation.errors.password}
+                      aria-describedby={loginValidation.errors.password ? "password-error" : undefined}
                     />
                     <button
                       type="button"
@@ -369,6 +436,12 @@ export function LoginPage() {
                       )}
                     </button>
                   </div>
+                  {loginValidation.errors.password && (
+                    <div id="password-error" className="flex items-center gap-1.5 text-sm text-destructive" role="alert">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{loginValidation.errors.password}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between">

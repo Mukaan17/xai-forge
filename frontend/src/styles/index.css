@@ -1,7 +1,9 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "./accessibility.css";
 
 @theme {
+  /* Dark theme defaults */
   --color-background: #0f0f1a;
   --color-foreground: #fff;
   --color-card: #252540;
@@ -29,6 +31,40 @@
   --color-input: #1a1a2e;
   --color-ring: #00d9ff;
   --radius: 0.75rem;
+}
+
+/* Light theme overrides */
+:root.light {
+  --color-background: #ffffff;
+  --color-foreground: #0f0f1a;
+  --color-card: #f8f9fa;
+  --color-card-foreground: #0f0f1a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0f0f1a;
+  --color-primary-foreground: #ffffff;
+  --color-secondary-foreground: #ffffff;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-accent-foreground: #ffffff;
+  --color-border: #e2e8f0;
+  --color-input: #ffffff;
+}
+
+/* Dark theme (default) */
+:root.dark {
+  --color-background: #0f0f1a;
+  --color-foreground: #fff;
+  --color-card: #252540;
+  --color-card-foreground: #fff;
+  --color-popover: #252540;
+  --color-popover-foreground: #fff;
+  --color-primary-foreground: #0f0f1a;
+  --color-secondary-foreground: #fff;
+  --color-muted: #1a1a2e;
+  --color-muted-foreground: #a1a1aa;
+  --color-accent-foreground: #0f0f1a;
+  --color-border: #3a3a5c;
+  --color-input: #1a1a2e;
 }
 
 * {

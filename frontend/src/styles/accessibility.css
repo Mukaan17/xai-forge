@@ -1,0 +1,114 @@
+/**
+ * Accessibility styles for WCAG AA compliance
+ * 
+ * @since 1.0.0
+ */
+
+/* Screen reader only - visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:focus,
+.sr-only:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Focus indicators - ensure all interactive elements have visible focus */
+*:focus-visible {
+  outline: 2px solid var(--color-ring, #00d9ff);
+  outline-offset: 2px;
+}
+
+/* Skip link styles */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 100;
+  border-radius: 4px;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: #ffffff;
+    --color-muted-foreground: #ffffff;
+  }
+  
+  button, a, input, select, textarea {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Minimum touch target size (44x44px for mobile) */
+button, a, input[type="button"], input[type="submit"], input[type="reset"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Ensure sufficient color contrast */
+.text-muted-foreground {
+  color: var(--color-muted-foreground);
+  /* Ensure contrast ratio of at least 4.5:1 for normal text */
+}
+
+/* Focus trap for modals */
+[data-focus-trap] {
+  outline: none;
+}
+
+/* ARIA live region */
+[role="status"],
+[role="alert"],
+[aria-live] {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+[role="status"]:focus,
+[role="alert"]:focus,
+[aria-live]:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+}

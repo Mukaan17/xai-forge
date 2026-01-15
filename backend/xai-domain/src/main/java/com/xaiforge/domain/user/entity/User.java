@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -33,6 +32,15 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
     
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+    
+    @Column(name = "email_verification_token", length = 100)
+    private String emailVerificationToken;
+    
+    @Column(name = "email_verification_expires")
+    private LocalDateTime emailVerificationExpires;
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -41,6 +49,9 @@ public class User implements UserDetails {
     
     @Column(name = "two_factor_secret")
     private String twoFactorSecret;
+    
+    @Column(name = "two_factor_backup_codes", length = 500)
+    private String twoFactorBackupCodes; // Comma-separated, hashed backup codes
     
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private UserProfile profile;

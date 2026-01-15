@@ -116,6 +116,9 @@ const ScrambledTitle: React.FC = () => {
               counter++
               // Reduced delay between phrases: 1.2s instead of 2s
               setTimeout(next, 1200)
+            } else {
+              // Add extra delay after "Made Easy" completes so users can see it longer
+              // This delay is handled by the hero-section timer, but we ensure the phrase is complete
             }
           })
         }

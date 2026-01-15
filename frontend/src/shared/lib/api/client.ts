@@ -153,6 +153,23 @@ class ApiClient {
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>({ ...config, method: 'DELETE', url });
   }
+
+  async downloadFile(url: string, filename: string, config?: AxiosRequestConfig): Promise<void> {
+    const response = await this.client.get(url, {
+      ...config,
+      responseType: 'blob',
+    });
+    
+    const blob = new Blob([response.data]);
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+  }
 }
 
 export const apiClient = new ApiClient();

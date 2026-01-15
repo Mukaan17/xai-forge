@@ -51,6 +51,53 @@ public class EmailService {
         );
     }
     
+    public void sendVerificationEmail(String toEmail, String verificationUrl, String username) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail.isEmpty() ? "noreply@xaiforge.com" : fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Verify Your Email - XAI Forge");
+            message.setText(buildVerificationEmailBody(verificationUrl, username));
+            
+            mailSender.send(message);
+            log.info("Verification email sent successfully to: {}", toEmail);
+        } catch (MailException e) {
+            log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage(), e);
+            throw new EmailSendingException("Failed to send verification email", e);
+        }
+    }
+    
+    private String buildVerificationEmailBody(String verificationUrl, String username) {
+        return String.format(
+            "Hello %s,\n\n" +
+            "Thank you for registering with XAI Forge!\n\n" +
+            "Please verify your email address by clicking the link below:\n\n" +
+            "%s\n\n" +
+            "This link will expire in 24 hours.\n\n" +
+            "If you did not create an account, please ignore this email.\n\n" +
+            "Best regards,\n" +
+            "XAI Forge Team",
+            username,
+            verificationUrl
+        );
+    }
+    
+    public void sendNotificationEmail(String toEmail, String subject, String body) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail.isEmpty() ? "noreply@xaiforge.com" : fromEmail);
+            message.setTo(toEmail);
+            message.setSubject(subject);
+            message.setText(body);
+            
+            mailSender.send(message);
+            log.info("Notification email sent successfully to: {}", toEmail);
+        } catch (MailException e) {
+            log.error("Failed to send notification email to {}: {}", toEmail, e.getMessage(), e);
+            throw new EmailSendingException("Failed to send notification email", e);
+        }
+    }
+    
     public static class EmailSendingException extends RuntimeException {
         public EmailSendingException(String message, Throwable cause) {
             super(message, cause);
