@@ -3,7 +3,8 @@ package com.xaiforge.infrastructure.ml.factory;
 import com.xaiforge.domain.model.entity.MLModel;
 import com.xaiforge.infrastructure.ml.strategy.*;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -19,8 +20,8 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class AlgorithmStrategyRegistry {
+    private static final Logger log = LoggerFactory.getLogger(AlgorithmStrategyRegistry.class);
 
     private final ClassificationStrategy classificationStrategy;
     private final RegressionStrategy regressionStrategy;

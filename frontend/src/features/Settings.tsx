@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, Shield, Bell, Palette, Plug, Database, Download, AlertTriangle, Laptop, Smartphone, Monitor, Sun, Moon, Eye, Copy, Plus, X, Trash2 } from 'lucide-react';
+import { User, Shield, Bell, Palette, Plug, Database, Download, AlertTriangle, Smartphone, Monitor, Eye, Copy, Plus, X, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -264,26 +264,6 @@ export function Settings() {
 
         {/* Appearance Tab */}
         <TabsContent value="appearance" className="space-y-6">
-          <Card className="p-6">
-            <h3 className="mb-6">Theme</h3>
-            <RadioGroup defaultValue="dark" className="grid grid-cols-3 gap-4">
-              {[
-                { id: 'dark', label: 'Dark Mode', icon: Moon },
-                { id: 'light', label: 'Light Mode', icon: Sun },
-                { id: 'system', label: 'System', icon: Laptop },
-              ].map((theme) => (
-                <label key={theme.id} className="cursor-pointer">
-                  <RadioGroupItem value={theme.id} className="sr-only" />
-                  <div className="border-2 border-border rounded-lg p-4 hover:border-primary/50 transition-colors data-[state=checked]:border-primary">
-                    <theme.icon className="w-6 h-6 mb-3" />
-                    <p className="font-medium">{theme.label}</p>
-                    <div className="mt-3 h-20 rounded border border-border bg-gradient-to-b from-muted to-background"></div>
-                  </div>
-                </label>
-              ))}
-            </RadioGroup>
-          </Card>
-
           <Card className="p-6">
             <h3 className="mb-6">Accent Color</h3>
             <p className="text-muted-foreground mb-4">

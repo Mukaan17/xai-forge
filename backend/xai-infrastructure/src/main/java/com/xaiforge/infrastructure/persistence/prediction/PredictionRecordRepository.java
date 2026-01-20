@@ -22,8 +22,6 @@ public interface PredictionRecordRepository extends JpaRepository<PredictionReco
     List<PredictionRecord> findByUserIdAndModelIdAndCreatedAtBetweenOrderByCreatedAtDesc(
         Long userId, Long modelId, LocalDateTime startDate, LocalDateTime endDate);
     
-    Page<PredictionRecord> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
-    
     @Query("SELECT COUNT(p) FROM PredictionRecord p WHERE p.user.id = :userId")
     long countByUserId(Long userId);
     

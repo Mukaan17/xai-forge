@@ -47,13 +47,9 @@ public class CachedModelService {
         }
         
         log.debug("Cache MISS for model: {}", modelId);
-        Optional<ModelDto> model = modelService.getModel(modelId, userId);
-        
-        if (model.isPresent()) {
-            cacheService.set(cacheKey, model.get(), MODEL_CACHE_TTL);
-        }
-        
-        return model;
+        ModelDto model = modelService.getModel(modelId, userId);
+        cacheService.set(cacheKey, model, MODEL_CACHE_TTL);
+        return Optional.of(model);
     }
     
     /**
@@ -69,13 +65,9 @@ public class CachedModelService {
         }
         
         log.debug("Cache MISS for model metrics: {}", modelId);
-        Optional<ExtendedMetricsDto> metrics = modelService.getExtendedMetrics(modelId, userId);
-        
-        if (metrics.isPresent()) {
-            cacheService.set(cacheKey, metrics.get(), METRICS_CACHE_TTL);
-        }
-        
-        return metrics;
+        ExtendedMetricsDto metrics = modelService.getExtendedMetrics(modelId, userId);
+        cacheService.set(cacheKey, metrics, METRICS_CACHE_TTL);
+        return Optional.of(metrics);
     }
     
     /**

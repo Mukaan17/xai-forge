@@ -10,7 +10,7 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
+      staggerChildren: 0.03,
       delayChildren: 0.1,
     },
   },
@@ -32,83 +32,107 @@ const itemVariants = {
 
 /**
  * Props for the BentoGridShowcase component.
- * Each prop represents a "slot" in the grid.
+ * Accepts all feature cards as children in a flexible grid.
  */
 interface BentoGridShowcaseProps {
-  /** Slot for the tall card (e.g., Integration) */
-  integration: React.ReactNode;
-  /** Slot for the top-middle card (e.g., Trackers) */
-  trackers: React.ReactNode;
-  /** Slot for the top-right card (e.g., Statistic) */
-  statistic: React.ReactNode;
-  /** Slot for the middle-middle card (e.g., Focus) */
-  focus: React.ReactNode;
-  /** Slot for the middle-right card (e.g., Productivity) */
-  productivity: React.ReactNode;
-  /** Slot for the wide bottom card (e.g., Shortcuts) */
-  shortcuts: React.ReactNode;
-  /** Optional class names for the grid container */
+  children: React.ReactNode;
   className?: string;
 }
 
 /**
- * A responsive, animated bento grid layout component.
- * It arranges six content slots in the specific layout
- * seen in the "Product Features" UI.
+ * A modern, minimal bento grid layout with tight spacing.
+ * Uses span-based positioning with dense flow to eliminate gaps and prevent overlaps.
  */
 export const BentoGridShowcase = ({
-  integration,
-  trackers,
-  statistic,
-  focus,
-  productivity,
-  shortcuts,
+  children,
   className,
 }: BentoGridShowcaseProps) => {
+  const childrenArray = React.Children.toArray(children);
+  
+  // Get grid spans for each card
+  // Order: 0=Dataset, 1=Security, 2=FeatureImportance, 3=Performance, 4=Search,
+  // 5=Models, 6=Predictions, 7=Export, 8=Notifications, 9=History,
+  // 10=Accuracy, 11=Activity, 12=Comparison, 13=XAI, 14=Training, 15=Settings
+  const getCardLayout = (index: number) => {
+    const base = "col-span-1 row-span-1";
+    let mdClasses = "";
+    let lgClasses = "";
+    
+    switch (index) {
+      case 0: // Dataset - tall, spans 4 rows
+        mdClasses = "md:col-span-1 md:row-span-4";
+        lgClasses = "lg:col-span-1 lg:row-span-4";
+        break;
+      case 1: // Security - standard
+      case 2: // Feature Importance - standard
+      case 3: // Performance - standard
+      case 4: // Search - standard
+      case 5: // Models - standard
+      case 7: // Export - standard
+      case 8: // Notifications - standard
+      case 9: // History - standard
+      case 11: // Activity - standard
+      case 12: // Comparison - standard
+      case 14: // Training - standard
+      case 15: // Settings - standard
+        mdClasses = "md:col-span-1 md:row-span-1";
+        lgClasses = "lg:col-span-1 lg:row-span-1";
+        break;
+      case 6: // Predictions - wide, spans 2 columns
+        mdClasses = "md:col-span-2 md:row-span-1";
+        lgClasses = "lg:col-span-2 lg:row-span-1";
+        break;
+      case 10: // Accuracy - tall, spans 2 rows
+        mdClasses = "md:col-span-1 md:row-span-2";
+        lgClasses = "lg:col-span-1 lg:row-span-2";
+        break;
+      case 13: // XAI - tall, spans 2 rows
+        mdClasses = "md:col-span-1 md:row-span-2";
+        lgClasses = "lg:col-span-1 lg:row-span-2";
+        break;
+    }
+    
+    return cn(base, mdClasses, lgClasses);
+  };
+  
   return (
     <motion.section
       variants={containerVariants}
       initial="hidden"
       animate="visible"
       className={cn(
-        // Core grid layout: 1 col on mobile, 3 on desktop
-        "grid w-full grid-cols-1 gap-6 md:grid-cols-3",
-        // Defines 3 explicit rows on medium screens and up
-        "md:grid-rows-3",
-        // Use minmax to ensure cards can grow but have a minimum height
-        "auto-rows-[minmax(180px,auto)]",
+        // Minimal spacing
+        "grid w-full grid-cols-1 gap-1.5 md:gap-2",
+        // Responsive columns
+        "md:grid-cols-2 lg:grid-cols-4",
+        // Auto rows with consistent minimum height
+        "auto-rows-[minmax(140px,auto)]",
+        // Dense packing to fill gaps automatically - prevents overlaps
+        "grid-flow-row-dense",
         className
       )}
     >
-      {/* Slot 1: Integration (Spans 2 rows) */}
-      <motion.div variants={itemVariants} className="md:col-span-1 md:row-span-3">
-        {integration}
-      </motion.div>
-
-      {/* Slot 2: Trackers */}
-      <motion.div variants={itemVariants} className="md:col-span-1 md:row-span-1">
-        {trackers}
-      </motion.div>
-
-      {/* Slot 3: Statistic */}
-      <motion.div variants={itemVariants} className="md:col-span-1 md:row-span-1">
-        {statistic}
-      </motion.div>
-
-      {/* Slot 4: Focus */}
-      <motion.div variants={itemVariants} className="md:col-span-1 md:row-span-1">
-        {focus}
-      </motion.div>
-
-      {/* Slot 5: Productivity */}
-      <motion.div variants={itemVariants} className="md:col-span-1 md:row-span-1">
-        {productivity}
-      </motion.div>
-
-      {/* Slot 6: Shortcuts (Spans 2 cols) */}
-      <motion.div variants={itemVariants} className="md:col-span-2 md:row-span-1">
-        {shortcuts}
-      </motion.div>
+      {childrenArray.map((child, index) => {
+        const layoutClasses = getCardLayout(index);
+        
+        return (
+          <motion.div
+            key={index}
+            variants={itemVariants}
+            className={cn(
+              // Ensure proper grid cell behavior
+              "h-full w-full",
+              // Prevent overflow and overlaps
+              "min-h-0 min-w-0",
+              // Ensure proper positioning
+              "relative",
+              layoutClasses
+            )}
+          >
+            {child}
+          </motion.div>
+        );
+      })}
     </motion.section>
   );
 };

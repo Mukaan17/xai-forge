@@ -2,7 +2,8 @@ package com.xaiforge.infrastructure.ml.factory;
 
 import com.xaiforge.domain.model.entity.MLModel;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.tribuo.MutableDataset;
 import org.tribuo.data.csv.CSVDataSource;
@@ -28,11 +29,9 @@ import java.nio.file.Path;
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class AlgorithmFactory {
     
-    // Manual log field (Lombok @Slf4j not generating it)
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AlgorithmFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(AlgorithmFactory.class);
     
     /**
      * Load dataset from CSV file using the appropriate loader

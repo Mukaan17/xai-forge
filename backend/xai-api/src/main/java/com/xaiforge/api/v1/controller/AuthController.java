@@ -6,12 +6,15 @@ import com.xaiforge.application.service.SessionApplicationService;
 import com.xaiforge.application.service.TwoFactorApplicationService;
 import com.xaiforge.application.service.UserApplicationService;
 import com.xaiforge.common.annotation.LogActivity;
+import com.xaiforge.domain.activity.entity.ActivityLog;
 import com.xaiforge.common.dto.*;
 import com.xaiforge.common.dto.TwoFactorSetupDto;
 import com.xaiforge.common.exception.ValidationException;
 import com.xaiforge.domain.activity.entity.ActivityLog;
 import com.xaiforge.domain.user.entity.User;
+import com.xaiforge.domain.user.entity.UserProfile;
 import com.xaiforge.infrastructure.email.EmailService;
+import com.xaiforge.infrastructure.persistence.user.UserProfileRepository;
 import com.xaiforge.infrastructure.otp.OtpService;
 import com.xaiforge.infrastructure.persistence.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +31,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +47,7 @@ public class AuthController {
     
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final UserProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final UserApplicationService userService;
@@ -55,6 +60,7 @@ public class AuthController {
     
     public AuthController(AuthenticationManager authenticationManager, 
                           UserRepository userRepository,
+                          UserProfileRepository profileRepository,
                           PasswordEncoder passwordEncoder,
                           JwtTokenProvider tokenProvider,
                           UserApplicationService userService,
@@ -66,6 +72,7 @@ public class AuthController {
                           ActivityLogApplicationService activityLogService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
+        this.profileRepository = profileRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
         this.userService = userService;
@@ -134,12 +141,9 @@ public class AuthController {
             )
         )
     })
-    @LogActivity(
-        eventType = "LOGIN_SUCCESS",
-        description = "New user registered: #{#request.username}",
-        resourceType = "USER"
-    )
+    @Transactional
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+        try {
         // Check if username already exists
         if (userRepository.existsByUsername(request.username())) {
             throw new ValidationException("username", "Username is already taken");
@@ -158,6 +162,21 @@ public class AuthController {
         user.setEmailVerified(false); // Email not verified yet
         
         User savedUser = userRepository.save(user);
+            
+            // Create user profile with provided information
+            UserProfile profile = new UserProfile();
+            profile.setUser(savedUser);
+            profile.setFirstName(request.firstName());
+            profile.setLastName(request.lastName());
+            if (request.organization() != null && !request.organization().trim().isEmpty()) {
+                profile.setOrganization(request.organization().trim());
+            }
+            if (request.role() != null && !request.role().trim().isEmpty()) {
+                profile.setRole(request.role().trim());
+            }
+            profileRepository.save(profile);
+            savedUser.setProfile(profile);
+            userRepository.save(savedUser);
         
         // Send verification email
         try {
@@ -180,9 +199,41 @@ public class AuthController {
             savedUser.getProfile() != null ? savedUser.getProfile().getLastName() : null,
             savedUser.isTwoFactorEnabled()
         );
+            
+            // Log registration activity asynchronously after response is prepared
+            // This is done in a separate thread to avoid any issues with request context
+            try {
+                Long userId = savedUser.getId();
+                String username = request.username();
+                String email = request.email();
+                // Use a separate thread to avoid request context issues
+                new Thread(() -> {
+                    try {
+                        activityLogService.logActivityAsync(
+                            userId,
+                            ActivityLog.EventType.LOGIN_SUCCESS,
+                            "New user registered: " + username,
+                            java.util.Map.of("username", username, "email", email)
+                        );
+                    } catch (Exception e) {
+                        log.debug("Failed to log registration activity for user {}: {}", userId, e.getMessage());
+                    }
+                }).start();
+            } catch (Exception e) {
+                log.debug("Failed to schedule registration activity log: {}", e.getMessage());
+                // Don't fail registration if activity logging fails
+            }
         
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(new AuthResponse(token, userDto));
+        } catch (ValidationException e) {
+            // Re-throw validation exceptions so they're handled by GlobalExceptionHandler
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error during registration: {}", e.getMessage(), e);
+            // Wrap in a runtime exception that will be handled by GlobalExceptionHandler
+            throw new RuntimeException("Registration failed: " + e.getMessage(), e);
+        }
     }
     
     @PostMapping("/login")
@@ -313,6 +364,50 @@ public class AuthController {
         return ResponseEntity.ok(userDto);
     }
     
+    @GetMapping("/profile")
+    @Operation(summary = "Get user profile")
+    public ResponseEntity<Map<String, Object>> getProfile(
+            org.springframework.security.core.Authentication authentication) {
+        try {
+            User user = (User) authentication.getPrincipal();
+            Long userId = user.getId();
+            
+            if (userId == null) {
+                log.error("User ID is null in getProfile");
+                throw new com.xaiforge.common.exception.UserNotFoundException("User ID is null");
+            }
+            
+            // Reload user to get profile - need to explicitly fetch profile since it's LAZY
+            User fullUser = userRepository.findById(userId)
+                .orElseThrow(() -> new com.xaiforge.common.exception.UserNotFoundException(userId));
+            
+            // Explicitly fetch the profile from database if it exists
+            UserProfile userProfile = profileRepository.findByUserId(userId).orElse(null);
+            
+            Map<String, Object> profile = new java.util.HashMap<>();
+            profile.put("id", fullUser.getId());
+            profile.put("username", fullUser.getUsername());
+            profile.put("email", fullUser.getEmail());
+            profile.put("firstName", userProfile != null ? userProfile.getFirstName() : null);
+            profile.put("lastName", userProfile != null ? userProfile.getLastName() : null);
+            profile.put("organization", userProfile != null ? userProfile.getOrganization() : null);
+            profile.put("role", userProfile != null ? userProfile.getRole() : null);
+            profile.put("twoFactorEnabled", fullUser.isTwoFactorEnabled());
+            
+            log.debug("Profile retrieved for user {}: firstName={}, lastName={}, organization={}, role={}", 
+                userId, 
+                userProfile != null ? userProfile.getFirstName() : null,
+                userProfile != null ? userProfile.getLastName() : null,
+                userProfile != null ? userProfile.getOrganization() : null,
+                userProfile != null ? userProfile.getRole() : null);
+            
+            return ResponseEntity.ok(profile);
+        } catch (Exception e) {
+            log.error("Error getting profile", e);
+            throw e;
+        }
+    }
+    
     @PutMapping("/profile")
     @Operation(summary = "Update user profile")
     @LogActivity(
@@ -320,27 +415,31 @@ public class AuthController {
         description = "Profile updated",
         resourceType = "USER"
     )
-    public ResponseEntity<AuthResponse.UserDto> updateProfile(
+    public ResponseEntity<Map<String, Object>> updateProfile(
             @Valid @RequestBody UpdateProfileRequest request,
             org.springframework.security.core.Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         
         userService.updateProfile(user.getId(), request);
         
-        // Reload user to get updated profile
+        // Reload user to get updated profile - need to explicitly fetch profile since it's LAZY
         User updatedUser = userRepository.findById(user.getId())
             .orElseThrow(() -> new com.xaiforge.common.exception.UserNotFoundException(user.getId()));
         
-        AuthResponse.UserDto userDto = new AuthResponse.UserDto(
-            updatedUser.getId(),
-            updatedUser.getUsername(),
-            updatedUser.getEmail(),
-            updatedUser.getProfile() != null ? updatedUser.getProfile().getFirstName() : null,
-            updatedUser.getProfile() != null ? updatedUser.getProfile().getLastName() : null,
-            updatedUser.isTwoFactorEnabled()
-        );
+        // Explicitly fetch the updated profile from database
+        UserProfile updatedProfile = profileRepository.findByUserId(updatedUser.getId()).orElse(null);
         
-        return ResponseEntity.ok(userDto);
+        Map<String, Object> profile = new java.util.HashMap<>();
+        profile.put("id", updatedUser.getId());
+        profile.put("username", updatedUser.getUsername());
+        profile.put("email", updatedUser.getEmail());
+        profile.put("firstName", updatedProfile != null ? updatedProfile.getFirstName() : null);
+        profile.put("lastName", updatedProfile != null ? updatedProfile.getLastName() : null);
+        profile.put("organization", updatedProfile != null ? updatedProfile.getOrganization() : null);
+        profile.put("role", updatedProfile != null ? updatedProfile.getRole() : null);
+        profile.put("twoFactorEnabled", updatedUser.isTwoFactorEnabled());
+        
+        return ResponseEntity.ok(profile);
     }
     
     @PutMapping("/password")

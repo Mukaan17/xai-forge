@@ -36,9 +36,15 @@ export function DashboardPage() {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Check if onboarding should be shown on mount
+  // Only show if:
+  // 1. User hasn't permanently opted out (localStorage)
+  // 2. User hasn't seen it in this session (sessionStorage)
   useEffect(() => {
     const onboardingCompleted = localStorage.getItem('xai-forge-onboarding-completed');
-    if (!onboardingCompleted) {
+    const onboardingShownThisSession = sessionStorage.getItem('xai-forge-onboarding-shown');
+    
+    // Only show if user hasn't permanently opted out AND hasn't seen it this session
+    if (!onboardingCompleted && !onboardingShownThisSession) {
       setShowOnboarding(true);
     }
   }, []);

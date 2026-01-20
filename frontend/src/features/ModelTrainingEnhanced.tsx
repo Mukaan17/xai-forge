@@ -8,7 +8,7 @@ import { Progress } from './ui/progress';
 import { Slider } from './ui/slider';
 import { Switch } from './ui/switch';
 import { useStore } from '../lib/store';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface ModelTrainingEnhancedProps {
   onNavigate: (page: string) => void;

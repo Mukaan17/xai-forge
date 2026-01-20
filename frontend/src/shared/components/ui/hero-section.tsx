@@ -32,21 +32,75 @@ const transitionVariants = {
 }
 
 export function HeroSection() {
-    // Check navigation flag synchronously on mount to avoid race conditions
-    const navigatedFromApp = typeof window !== 'undefined' ? sessionStorage.getItem('xai-forge-navigated-to-hero') : null;
+    // Check flag synchronously first (best effort)
+    const initialFlag = typeof window !== 'undefined' ? sessionStorage.getItem('xai-forge-navigated-to-hero') : null;
     
-    // Determine if we need hero animation synchronously (before first render)
-    const needsHeroAnimation = !navigatedFromApp; // Only animate when coming from loading screen
-    
-    const [showLoading, setShowLoading] = React.useState(() => {
-        // Initialize state based on navigation flag
-        return !navigatedFromApp;
-    });
+    // State management
+    const [navigatedFromApp, setNavigatedFromApp] = React.useState(initialFlag);
+    const [showLoading, setShowLoading] = React.useState(!initialFlag); // Show loading if no flag (fresh load)
     const [fadeOut, setFadeOut] = React.useState(false);
-    const [heroFadeIn, setHeroFadeIn] = React.useState(() => {
-        // If navigated from app, hero should be visible immediately (App.tsx handles animation)
-        return !!navigatedFromApp;
-    });
+    const [heroFadeIn, setHeroFadeIn] = React.useState(!!initialFlag); // Show hero if flag exists
+    
+    // Ref to track loading timer so we can cancel it if flag is set
+    const loadingTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+    
+    // Combined effect to handle both fresh loads and navigation back
+    React.useEffect(() => {
+        // Check if flag was set (for navigation back)
+        const checkFlag = () => {
+            const flag = sessionStorage.getItem('xai-forge-navigated-to-hero');
+            
+            if (flag) {
+                // Flag exists - user navigated from another page, show hero immediately
+                setNavigatedFromApp(flag);
+                setShowLoading(false);
+                setHeroFadeIn(true);
+                // Cancel loading timer if it was started
+                if (loadingTimerRef.current) {
+                    clearTimeout(loadingTimerRef.current);
+                    loadingTimerRef.current = null;
+                }
+                return true; // Flag found
+            }
+            return false; // No flag
+        };
+        
+        // Check immediately
+        const hasFlag = checkFlag();
+        
+        // If no flag and we're showing loading, start the loading sequence
+        if (!hasFlag && showLoading && !navigatedFromApp) {
+            loadingTimerRef.current = setTimeout(() => {
+                setFadeOut(true);
+                setHeroFadeIn(true);
+                setTimeout(() => {
+                    setShowLoading(false);
+                }, 1500); // Wait for fade-out transition to complete
+            }, 7500); // Show loading screen for 7.5 seconds
+            
+            // Also check flag again after delays to catch race conditions
+            const timer1 = setTimeout(checkFlag, 50);
+            const timer2 = setTimeout(checkFlag, 200);
+            
+            return () => {
+                if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+                clearTimeout(timer1);
+                clearTimeout(timer2);
+            };
+        } else {
+            // Check flag again after delays to catch race conditions
+            const timer1 = setTimeout(checkFlag, 50);
+            const timer2 = setTimeout(checkFlag, 200);
+            
+            return () => {
+                clearTimeout(timer1);
+                clearTimeout(timer2);
+            };
+        }
+    }, []); // Only run on mount
+    
+    // Ensure hero content is always clickable when visible
+    const isHeroInteractive = heroFadeIn && (!showLoading || fadeOut);
     
     // Extract hero content to avoid duplication
     const heroContent = (
@@ -211,31 +265,13 @@ export function HeroSection() {
         document.documentElement.classList.add('hide-scrollbar');
         document.body.classList.add('hide-scrollbar');
         
-        // Clear the navigation flag after checking
+        // Clear the navigation flag after a delay if it was set
+        // This allows smooth transitions when navigating back
         if (navigatedFromApp) {
+            const clearFlagTimer = setTimeout(() => {
             sessionStorage.removeItem('xai-forge-navigated-to-hero');
-            // Navigated from another page - App.tsx handles animation, hero is already visible
-            // No need to do anything, heroFadeIn is already true from initial state
-        } else {
-            // Page reload or initial load - show loading screen with same sequence
-            // Timing: phrase1 (~1s) + delay (1.2s) + phrase2 (~1s) + delay (1.2s) + phrase3 (~0.6s) + extra display time (1.5s) = ~7.5s
-            // Extended display time for "Made Easy" so users can see it longer for better UX
-            const timer = setTimeout(() => {
-                setFadeOut(true)
-                // Start hero animation as loading screen starts fading out
-                // This creates a smooth overlap where hero animates as loading fades
-                setHeroFadeIn(true)
-                setTimeout(() => {
-                    setShowLoading(false)
-                }, 1500) // Wait for fade-out transition to complete
-            }, 7500) // Extended from 5800ms to 7500ms to show "Made Easy" longer
-
-            return () => {
-                clearTimeout(timer)
-                // Remove scrollbar hide class when component unmounts
-                document.documentElement.classList.remove('hide-scrollbar');
-                document.body.classList.remove('hide-scrollbar');
-            }
+            }, 500); // Longer delay to ensure smooth transitions
+            return () => clearTimeout(clearFlagTimer);
         }
         
         return () => {
@@ -248,10 +284,15 @@ export function HeroSection() {
     return (
         <>
             {showLoading && (
-                <div className={`fixed inset-0 z-50 transition-opacity duration-1500 ${fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                <div 
+                    className={`fixed inset-0 z-50 transition-opacity duration-1500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}
+                    style={{ pointerEvents: fadeOut ? 'none' : 'auto' }}
+                    aria-hidden={fadeOut}
+                >
                     <LoadingScreen />
                 </div>
             )}
+            <div style={{ position: 'relative', zIndex: isHeroInteractive ? 100 : (showLoading && !fadeOut ? 0 : 1) }}>
             <AnimatePresence mode="wait">
                 {heroFadeIn && (
                     <motion.div
@@ -260,12 +301,13 @@ export function HeroSection() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 100 }}
                         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                        style={{ pointerEvents: showLoading ? 'none' : 'auto' }}
+                            style={{ pointerEvents: isHeroInteractive ? 'auto' : 'none' }}
                     >
                         {heroContent}
                     </motion.div>
                 )}
             </AnimatePresence>
+            </div>
         </>
     )
 }

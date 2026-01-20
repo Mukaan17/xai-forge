@@ -31,6 +31,13 @@
             <version>${project.version}</version>
         </dependency>
         
+        <!-- XAI Domain (needed for entity classes at runtime) -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>xai-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
         <!-- XAI Common -->
         <dependency>
             <groupId>com.example</groupId>

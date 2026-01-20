@@ -1,4 +1,5 @@
-import { BrainCircuit, Calendar, Database, TrendingUp, Download, Play, Trash2, GitCompare, Edit2, MoreVertical, Target, Zap } from 'lucide-react';
+import { BrainCircuit, Calendar, Database, TrendingUp, Download, Play, Trash2, GitCompare, Edit2, Target, Zap } from 'lucide-react';
+import { DropdownMenuAction } from '@/shared/components/ui/dropdown-menu-action';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
@@ -99,9 +100,33 @@ export function ModelDetails({ onNavigate }: ModelDetailsProps) {
             <Play className="w-4 h-4 mr-2" />
             Make Prediction
           </Button>
-          <Button variant="outline">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
+          <DropdownMenuAction
+            options={[
+              {
+                label: "Edit Model",
+                onClick: () => console.log("Edit model"),
+                Icon: Edit2,
+              },
+              {
+                label: "Download",
+                onClick: () => console.log("Download model"),
+                Icon: Download,
+              },
+              {
+                label: "Compare",
+                onClick: () => onNavigate('models-compare'),
+                Icon: GitCompare,
+              },
+              {
+                label: "Delete",
+                onClick: () => console.log("Delete model"),
+                Icon: Trash2,
+                variant: "destructive",
+              },
+            ]}
+            align="right"
+            variant="icon"
+          />
         </div>
       </div>
 

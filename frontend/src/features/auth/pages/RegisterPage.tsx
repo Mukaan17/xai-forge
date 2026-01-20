@@ -26,6 +26,10 @@ export function RegisterPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [organization, setOrganization] = useState('');
+  const [role, setRole] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
@@ -50,7 +54,15 @@ export function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    register({ username, email, password });
+    register({ 
+      username, 
+      email, 
+      password,
+      firstName,
+      lastName,
+      organization: organization.trim() || undefined,
+      role: role.trim() || undefined
+    });
   };
 
   const handleLoginClick = (e: React.MouseEvent) => {
@@ -214,7 +226,7 @@ export function RegisterPage() {
             sessionStorage.setItem('xai-forge-closing-from-path', location.pathname);
             navigate('/');
           }}
-          className="p-2 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 group-hover:bg-background group-hover:border-border transition-all duration-300"
+          className="w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 group-hover:bg-background group-hover:border-border transition-all duration-300 flex items-center justify-center p-0"
           aria-label="Close"
         >
           <X className="size-5 text-foreground group-hover:text-red-500 group-hover:rotate-90 transition-all duration-300" />
@@ -309,6 +321,42 @@ export function RegisterPage() {
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="John"
+                  value={firstName}
+                  autoComplete="given-name"
+                  onChange={(e) => setFirstName(e.target.value)}
+                  onFocus={() => setIsTyping(true)}
+                  onBlur={() => setIsTyping(false)}
+                  required
+                  disabled={isLoading}
+                  className="h-12 bg-background border-border/60 focus:border-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Doe"
+                  value={lastName}
+                  autoComplete="family-name"
+                  onChange={(e) => setLastName(e.target.value)}
+                  onFocus={() => setIsTyping(true)}
+                  onBlur={() => setIsTyping(false)}
+                  required
+                  disabled={isLoading}
+                  className="h-12 bg-background border-border/60 focus:border-primary"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">Email</Label>
               <Input
@@ -316,7 +364,7 @@ export function RegisterPage() {
                 type="email"
                 placeholder="anna@gmail.com"
                 value={email}
-                autoComplete="off"
+                autoComplete="email"
                 onChange={(e) => setEmail(e.target.value)}
                 onFocus={() => setIsTyping(true)}
                 onBlur={() => setIsTyping(false)}
@@ -324,6 +372,44 @@ export function RegisterPage() {
                 disabled={isLoading}
                 className="h-12 bg-background border-border/60 focus:border-primary"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="organization" className="text-sm font-medium">
+                  Company <span className="text-muted-foreground text-xs font-normal">(Optional)</span>
+                </Label>
+                <Input
+                  id="organization"
+                  type="text"
+                  placeholder="Acme Corp"
+                  value={organization}
+                  autoComplete="organization"
+                  onChange={(e) => setOrganization(e.target.value)}
+                  onFocus={() => setIsTyping(true)}
+                  onBlur={() => setIsTyping(false)}
+                  disabled={isLoading}
+                  className="h-12 bg-background border-border/60 focus:border-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="role" className="text-sm font-medium">
+                  Role <span className="text-muted-foreground text-xs font-normal">(Optional)</span>
+                </Label>
+                <Input
+                  id="role"
+                  type="text"
+                  placeholder="Software Engineer"
+                  value={role}
+                  autoComplete="organization-title"
+                  onChange={(e) => setRole(e.target.value)}
+                  onFocus={() => setIsTyping(true)}
+                  onBlur={() => setIsTyping(false)}
+                  disabled={isLoading}
+                  className="h-12 bg-background border-border/60 focus:border-primary"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

@@ -33,9 +33,33 @@ export function useAuth() {
       toast.success('Account created successfully! Please check your email to verify your account.');
       navigate('/dashboard');
     },
-    onError: (error) => {
-      toast.error('Registration failed. Please try again.');
+    onError: (error: any) => {
+      // Extract error message from API error if available
+      console.error('Registration error:', error);
+      console.error('Error response:', error?.response);
+      console.error('Error data:', error?.response?.data);
+      
+      let errorMessage = 'Registration failed. Please check your information and try again.';
+      
+      // Try to extract from different error formats
+      if (error?.response?.data) {
+        const data = error.response.data;
+        errorMessage = data.detail || 
+                      data.message || 
+                      (data.errors && Array.isArray(data.errors) && data.errors.length > 0 
+                        ? data.errors[0].message || data.errors[0].field 
+                        : null) ||
+                      errorMessage;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.detail) {
+        errorMessage = error.detail;
+      }
+      
+      console.error('Displaying error toast:', errorMessage);
+      toast.error(errorMessage);
     },
+    retry: false, // Disable retry to prevent multiple error messages
   });
   
   const { data: currentUser } = useQuery({

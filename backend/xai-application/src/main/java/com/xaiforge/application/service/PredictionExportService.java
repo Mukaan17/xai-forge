@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
  * @since 1.0.0
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
 public class PredictionExportService {
@@ -31,10 +30,11 @@ public class PredictionExportService {
     
     public PredictionExportService(
             PredictionRecordRepository predictionRepository,
-            CsvParser csvParser) {
+            CsvParser csvParser,
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
         this.predictionRepository = predictionRepository;
         this.csvParser = csvParser;
-        this.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        this.objectMapper = objectMapper != null ? objectMapper : new com.fasterxml.jackson.databind.ObjectMapper();
     }
     
     /**

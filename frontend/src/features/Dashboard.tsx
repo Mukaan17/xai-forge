@@ -1,4 +1,5 @@
-import { Upload, BrainCircuit, Target, TrendingUp, Activity, Database, Zap, AlertCircle, Plus, Play, MoreVertical } from 'lucide-react';
+import { Upload, BrainCircuit, Target, TrendingUp, Activity, Database, Zap, AlertCircle, Plus, Play, Edit2, Trash2, Download } from 'lucide-react';
+import { DropdownMenuAction } from '@/shared/components/ui/dropdown-menu-action';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
@@ -254,9 +255,28 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                         <Play className="w-4 h-4 mr-1" />
                         Predict
                       </Button>
-                      <Button size="sm" variant="ghost">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
+                      <DropdownMenuAction
+                        options={[
+                          {
+                            label: "Edit",
+                            onClick: () => console.log("Edit model", model.name),
+                            Icon: Edit2,
+                          },
+                          {
+                            label: "Download",
+                            onClick: () => console.log("Download model", model.name),
+                            Icon: Download,
+                          },
+                          {
+                            label: "Delete",
+                            onClick: () => console.log("Delete model", model.name),
+                            Icon: Trash2,
+                            variant: "destructive",
+                          },
+                        ]}
+                        align="right"
+                        variant="icon"
+                      />
                     </div>
                   </td>
                 </tr>

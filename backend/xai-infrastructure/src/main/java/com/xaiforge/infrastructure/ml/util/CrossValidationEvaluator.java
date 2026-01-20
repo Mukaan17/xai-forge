@@ -1,6 +1,7 @@
 package com.xaiforge.infrastructure.ml.util;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.tribuo.MutableDataset;
 
@@ -16,8 +17,9 @@ import java.util.List;
  * @since 1.0.0
  */
 @Component
-@Slf4j
+
 public class CrossValidationEvaluator {
+    private static final Logger log = LoggerFactory.getLogger(CrossValidationEvaluator.class);
     
     /**
      * Result of cross-validation containing average metrics

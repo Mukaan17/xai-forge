@@ -1,113 +1,92 @@
-import { useEffect, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { settingsApi } from '@/features/settings/api/settingsApi';
 import { useAuthStore } from '@/features/auth/store/authStore';
 
 interface UserPreferences {
-  theme?: string;
   accentColor?: string;
   notificationPreferences?: string;
 }
 
 /**
  * Hook for managing theme preferences
- * Handles fetching, applying, and saving theme settings
+ * Always uses dark theme - theme switching has been removed
  */
 export function useTheme() {
   const { isAuthenticated } = useAuthStore();
   const queryClient = useQueryClient();
-  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(
-    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  );
 
-  // Fetch user preferences
+  // Fetch user preferences (only accent color now, no theme)
   const { data: preferences } = useQuery<UserPreferences>({
     queryKey: ['user-preferences'],
     queryFn: async () => {
       try {
         // Try to get preferences from user profile endpoint
         // For now, return defaults - preferences will be loaded from user profile
-        return { theme: 'dark', accentColor: '#00d9ff' };
-      } catch {
-        return { theme: 'dark', accentColor: '#00d9ff' };
+        return { accentColor: '#00d9ff' };
+      } catch (error) {
+        console.error('Error fetching preferences:', error);
+        return { accentColor: '#00d9ff' };
       }
     },
     enabled: isAuthenticated,
     staleTime: Infinity, // Preferences don't change often
+    retry: false, // Don't retry on error to prevent blocking
   });
 
-  // Save preferences mutation
-  const savePreferencesMutation = useMutation({
-    mutationFn: async (prefs: { theme?: string; accentColor?: string; notificationPreferences?: string }) => {
-      await settingsApi.updatePreferences(prefs);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
-    },
-  });
+  // Always use dark theme
+  const effectiveTheme = 'dark';
 
-  // Get effective theme (system, light, or dark)
-  const effectiveTheme = preferences?.theme === 'system' ? systemTheme : (preferences?.theme || 'dark');
-
-  // Apply theme to document
+  // Apply dark theme to document (always dark)
   useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const root = document.documentElement;
-    
-    // Apply dark/light class
-    if (effectiveTheme === 'dark') {
+    try {
+      const root = document.documentElement;
+      
+      // Always apply dark theme
       root.classList.add('dark');
       root.classList.remove('light');
-    } else {
-      root.classList.add('light');
-      root.classList.remove('dark');
+
+      // Apply accent color via CSS variable
+      const accentColor = preferences?.accentColor || localStorage.getItem('xai-accent-color') || '#00d9ff';
+      root.style.setProperty('--color-primary', accentColor);
+      root.style.setProperty('--color-accent', accentColor);
+      root.style.setProperty('--color-ring', accentColor);
+      
+      // Update primary foreground color for dark theme
+      const primaryForeground = '#0f0f1a';
+      root.style.setProperty('--color-primary-foreground', primaryForeground);
+      root.style.setProperty('--color-accent-foreground', primaryForeground);
+    } catch (error) {
+      console.error('Error applying theme:', error);
     }
+  }, [preferences?.accentColor, isAuthenticated]);
 
-    // Apply accent color via CSS variable
-    const accentColor = preferences?.accentColor || '#00d9ff';
-    root.style.setProperty('--color-primary', accentColor);
-    root.style.setProperty('--color-accent', accentColor);
-    root.style.setProperty('--color-ring', accentColor);
-    
-    // Update primary foreground color based on theme
-    const primaryForeground = effectiveTheme === 'dark' ? '#0f0f1a' : '#ffffff';
-    root.style.setProperty('--color-primary-foreground', primaryForeground);
-    root.style.setProperty('--color-accent-foreground', primaryForeground);
-  }, [effectiveTheme, preferences?.accentColor, isAuthenticated]);
-
-  // Listen to system theme changes
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    if (preferences?.theme !== 'system') return;
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      setSystemTheme(e.matches ? 'dark' : 'light');
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [preferences?.theme, isAuthenticated]);
-
-  const setTheme = (theme: 'light' | 'dark' | 'system') => {
-    // Save to localStorage immediately for instant feedback
-    localStorage.setItem('xai-theme', theme);
-    savePreferencesMutation.mutate({ theme });
-  };
-
-  const setAccentColor = (color: string) => {
+  const setAccentColor = async (color: string) => {
     // Save to localStorage immediately for instant feedback
     localStorage.setItem('xai-accent-color', color);
-    savePreferencesMutation.mutate({ accentColor: color });
+    
+    // Update the query cache optimistically
+    queryClient.setQueryData<UserPreferences>(['user-preferences'], (old) => ({
+      ...old,
+      accentColor: color,
+    }));
+    
+    // Save to API if authenticated
+    if (isAuthenticated) {
+      try {
+        await settingsApi.updatePreferences({ accentColor: color });
+      } catch (error) {
+        // If API call fails, revert the optimistic update
+        console.error('Failed to save accent color:', error);
+      }
+    }
   };
 
   return {
-    theme: preferences?.theme || 'dark',
-    effectiveTheme,
-    accentColor: preferences?.accentColor || '#00d9ff',
-    setTheme,
+    theme: 'dark',
+    effectiveTheme: 'dark',
+    accentColor: preferences?.accentColor || localStorage.getItem('xai-accent-color') || '#00d9ff',
     setAccentColor,
-    isLoading: savePreferencesMutation.isPending,
+    isLoading: false,
   };
 }

@@ -10,7 +10,7 @@ const useUIStore = create(
       // State
       sidebarCollapsed: false,
       notificationsPanelOpen: false,
-      theme: 'light', // 'light' | 'dark' | 'system'
+      // Theme switching removed - always dark theme
 
       // Actions
       toggleSidebar: () => {
@@ -27,16 +27,6 @@ const useUIStore = create(
 
       setNotificationsPanelOpen: (open) => {
         set({ notificationsPanelOpen: open });
-      },
-
-      setTheme: (theme) => {
-        set({ theme });
-        // Apply theme to document
-        if (theme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
       },
     }),
     {

@@ -141,7 +141,7 @@ export function HistoryPage() {
               ))}
             </SelectContent>
           </Select>
-              <Select value={timeFilter} onValueChange={handleTimeFilterChange}>
+          <Select value={timeFilter} onValueChange={setTimeFilter}>
             <SelectTrigger className="w-full sm:w-48">
               <SelectValue />
             </SelectTrigger>

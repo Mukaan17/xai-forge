@@ -69,11 +69,14 @@ public class CachedDatasetService {
         }
         
         log.debug("Cache MISS for dataset preview: {}", datasetId);
+        try {
         DatasetPreviewDto preview = datasetService.previewDataset(datasetId, userId, rows, offset);
-        
         cacheService.set(cacheKey, preview, PREVIEW_CACHE_TTL);
-        
         return preview;
+        } catch (java.io.IOException e) {
+            log.error("Error previewing dataset: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to preview dataset", e);
+        }
     }
     
     /**
@@ -89,11 +92,14 @@ public class CachedDatasetService {
         }
         
         log.debug("Cache MISS for dataset statistics: {}", datasetId);
+        try {
         DatasetStatisticsDto statistics = datasetService.getDatasetStatistics(datasetId, userId);
-        
         cacheService.set(cacheKey, statistics, STATS_CACHE_TTL);
-        
         return statistics;
+        } catch (java.io.IOException e) {
+            log.error("Error getting dataset statistics: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to get dataset statistics", e);
+        }
     }
     
     /**

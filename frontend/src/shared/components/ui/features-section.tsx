@@ -1,164 +1,141 @@
 import * as React from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
-import { Badge } from "@/shared/components/ui/badge";
-import { BentoGridShowcase } from "@/shared/components/ui/bento-product-features";
+import { motion } from "framer-motion";
+import { BentoCard, BentoGrid } from "@/shared/components/ui/bento-grid";
 import {
   Database,
   Brain,
-  BarChart3,
   Sparkles,
-  FileText,
   Zap,
+  Target,
 } from "lucide-react";
 
-// Feature cards customized for ML Operations Platform
-const DatasetManagementCard = () => (
-  <Card className="flex h-full flex-col border-border/60 bg-card">
-    <CardHeader>
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 dark:bg-primary/20">
-        <Database className="h-6 w-6 text-primary" />
-      </div>
-      <CardTitle className="text-xl font-semibold">Dataset Management</CardTitle>
-      <CardDescription className="text-muted-foreground">
-        Upload and manage CSV datasets with ease. View headers, row counts, and organize your data efficiently. Parse and validate datasets before training.
-      </CardDescription>
-    </CardHeader>
-    <CardFooter className="mt-auto">
-      <Badge variant="outline" className="border-primary/30 text-primary">
-        CSV Support
-      </Badge>
-    </CardFooter>
-  </Card>
-);
-
-const ModelsTrainedCard = () => (
-  <Card className="h-full border-border/60 bg-card">
-    <CardContent className="flex h-full flex-col justify-between p-6">
-      <div>
-        <CardTitle className="text-base font-medium">Models Trained</CardTitle>
-        <CardDescription className="text-muted-foreground">Active ML Models</CardDescription>
-      </div>
-      <div className="flex -space-x-2 overflow-hidden">
-        <div className="inline-block h-8 w-8 rounded-full ring-2 ring-background bg-primary/20 flex items-center justify-center">
-          <Brain className="h-4 w-4 text-primary" />
-        </div>
-        <div className="inline-block h-8 w-8 rounded-full ring-2 ring-background bg-secondary/20 flex items-center justify-center">
-          <BarChart3 className="h-4 w-4 text-secondary" />
-        </div>
-        <div className="inline-block h-8 w-8 rounded-full ring-2 ring-background bg-primary/20 flex items-center justify-center">
-          <Sparkles className="h-4 w-4 text-primary" />
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const AccuracyCard = () => (
-  <Card className="h-full border-border/60 bg-card">
-    <CardContent className="flex h-full flex-col justify-between p-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <CardTitle className="text-base font-medium">Model Accuracy</CardTitle>
-          <CardDescription className="text-muted-foreground">Prediction Confidence</CardDescription>
-        </div>
-        <Badge variant="outline" className="border-primary/30 text-primary">
-          High
-        </Badge>
-      </div>
-      <div>
-        <span className="text-6xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">94%</span>
-      </div>
-      <div className="flex justify-between text-xs text-muted-foreground">
-        <span>Average Accuracy</span>
-        <span>Real-time</span>
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const ExplainableAICard = () => (
-  <Card className="relative h-full w-full overflow-hidden border-border/60 bg-card">
-    {/* Dotted background */}
-    <div
-      className="absolute inset-0 opacity-10"
-      style={{
-        backgroundImage: "radial-gradient(hsl(var(--foreground)) 1px, transparent 1px)",
-        backgroundSize: "16px 16px",
-      }}
-    />
-    <CardContent className="relative z-10 flex h-full items-center justify-center p-6">
-      <div className="text-center">
-        <Sparkles className="h-12 w-12 mx-auto mb-2 text-primary" />
-        <span className="text-6xl font-bold text-foreground/90">XAI</span>
-        <p className="text-sm text-muted-foreground mt-2">Explainable AI</p>
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const ModelTrainingCard = () => (
-  <Card className="h-full border-border/60 bg-card">
-    <CardContent className="flex h-full flex-col justify-end p-6">
-      <CardTitle className="text-base font-medium">ML Model Training</CardTitle>
-      <CardDescription className="text-muted-foreground">
-        Train classification and regression models using state-of-the-art algorithms with Tribuo.
-      </CardDescription>
-    </CardContent>
-  </Card>
-);
-
-const PredictionsCard = () => (
-  <Card className="h-full border-border/60 bg-card">
-    <CardContent className="flex h-full flex-wrap items-center justify-between gap-4 p-6">
-      <div>
-        <CardTitle className="text-base font-medium">Smart Predictions</CardTitle>
-        <CardDescription className="text-muted-foreground">
-          Get real-time predictions with confidence scores and LIME-based explanations.
-        </CardDescription>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md border bg-background font-mono text-xs font-medium text-muted-foreground">
-          <Zap className="h-3 w-3" />
-        </div>
-        <span className="text-muted-foreground">+</span>
-        <div className="flex h-7 w-7 items-center justify-center rounded-md border bg-background font-mono text-xs font-medium text-muted-foreground">
-          <FileText className="h-3 w-3" />
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+// Most impactful features for the bento grid
+const features = [
+  {
+    Icon: Database,
+    name: "Dataset Management",
+    description: "Upload and manage CSV datasets with ease. View headers, row counts, and organize your data efficiently. Parse and validate datasets before training.",
+    detailedDescription: "Our comprehensive dataset management system allows you to seamlessly upload, validate, and organize your CSV files. With intuitive tools for viewing dataset headers, row counts, and data types, you can quickly understand your data structure before training models. The system automatically parses and validates datasets, ensuring data quality and preventing errors during the training process.",
+    features: [
+      "CSV file upload with drag-and-drop support",
+      "Automatic data validation and type detection",
+      "Dataset preview with header and row count information",
+      "Data organization and categorization tools",
+      "Export capabilities for processed datasets"
+    ],
+    href: "/datasets",
+    cta: "Learn More",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 dark:to-transparent" />
+    ),
+    className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
+  },
+  {
+    Icon: Brain,
+    name: "ML Model Training",
+    description: "Train classification and regression models using state-of-the-art algorithms with Tribuo. Support for multiple model types and hyperparameter tuning.",
+    detailedDescription: "Leverage the power of Tribuo, Oracle's machine learning library, to train sophisticated models for both classification and regression tasks. Our platform supports a wide range of algorithms including Random Forest, Gradient Boosting, Logistic Regression, and Neural Networks. With built-in hyperparameter tuning capabilities, you can optimize your models for peak performance.",
+    features: [
+      "Multiple algorithm support (Random Forest, Gradient Boosting, etc.)",
+      "Automated hyperparameter tuning",
+      "Real-time training progress monitoring",
+      "Model versioning and comparison tools",
+      "Support for both classification and regression tasks"
+    ],
+    href: "/models",
+    cta: "Learn More",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-secondary/5 to-transparent dark:from-secondary/20 dark:via-secondary/10 dark:to-transparent" />
+    ),
+    className: "lg:col-start-2 lg:col-end-4 lg:row-start-1 lg:row-end-2",
+  },
+  {
+    Icon: Sparkles,
+    name: "Explainable AI",
+    description: "Get human-understandable explanations for model predictions using LIME. Understand why your models make specific decisions with transparent, interpretable insights.",
+    detailedDescription: "Explainable AI is at the core of our platform. Using LIME (Local Interpretable Model-agnostic Explanations), we provide clear, human-understandable explanations for every prediction. Understand which features influenced your model's decision, see feature importance scores, and gain confidence in your model's reliability through transparent, interpretable insights.",
+    features: [
+      "LIME-based explanation generation",
+      "Feature importance visualization",
+      "Local and global interpretability",
+      "Interactive explanation dashboards",
+      "Export explanations for documentation"
+    ],
+    href: "/predictions",
+    cta: "Learn More",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/5 to-transparent dark:from-primary/20 dark:via-secondary/10 dark:to-transparent" />
+    ),
+    className: "lg:col-start-1 lg:col-end-2 lg:row-start-3 lg:row-end-4",
+  },
+  {
+    Icon: Zap,
+    name: "Smart Predictions",
+    description: "Get real-time predictions with confidence scores and LIME-based explanations. Track prediction history and analyze model performance with detailed insights.",
+    detailedDescription: "Make predictions in real-time with our intuitive prediction interface. Each prediction comes with confidence scores, probability distributions, and detailed LIME-based explanations. Track your prediction history, analyze patterns, and continuously improve your models based on real-world performance data.",
+    features: [
+      "Real-time prediction generation",
+      "Confidence scores and probability distributions",
+      "Complete prediction history tracking",
+      "Batch prediction capabilities",
+      "Performance analytics and insights"
+    ],
+    href: "/predictions",
+    cta: "Learn More",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-primary/5 to-transparent dark:from-secondary/20 dark:via-primary/10 dark:to-transparent" />
+    ),
+    className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-4",
+  },
+  {
+    Icon: Target,
+    name: "Model Accuracy",
+    description: "Track model performance with comprehensive metrics including accuracy, precision, recall, and F1 scores. Visualize ROC curves and confusion matrices for deep insights.",
+    detailedDescription: "Comprehensive model evaluation tools help you understand your model's performance from every angle. Access detailed metrics including accuracy, precision, recall, F1 scores, and more. Visualize performance through ROC curves, confusion matrices, and feature importance charts to make data-driven decisions about your models.",
+    features: [
+      "Comprehensive performance metrics (Accuracy, Precision, Recall, F1)",
+      "ROC curve visualization",
+      "Interactive confusion matrices",
+      "Feature importance analysis",
+      "Model comparison and benchmarking tools"
+    ],
+    href: "/models",
+    cta: "Learn More",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/5 dark:from-primary/20 dark:via-primary/10 dark:to-secondary/10" />
+    ),
+    className: "lg:col-start-3 lg:col-end-4 lg:row-start-2 lg:row-end-4",
+  },
+];
 
 // Main Feature Section Component
 export function FeaturesSection() {
   return (
-    <div id="features" className="w-full px-6 py-16 md:px-10 md:py-24 scroll-mt-20">
-      <div className="mb-12 text-center">
-        <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent mb-4">
+    <div id="features" className="w-full px-6 py-16 md:px-10 md:py-24 scroll-mt-20 bg-gradient-to-b from-background via-background to-background/95">
+      <motion.div
+        className="mb-16 text-center"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <h2 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent mb-4">
           Platform Features
         </h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
           Build, train, and deploy machine learning models with complete transparency.
-          <br />
-          Everything you need to manage your ML workflow from datasets to predictions.
+          <br className="hidden md:block" />
+          <span className="block mt-2">Everything you need to manage your ML workflow from datasets to predictions.</span>
         </p>
-      </div>
+      </motion.div>
 
-      <BentoGridShowcase
-        integration={<DatasetManagementCard />}
-        trackers={<ModelsTrainedCard />}
-        statistic={<AccuracyCard />}
-        focus={<ExplainableAICard />}
-        productivity={<ModelTrainingCard />}
-        shortcuts={<PredictionsCard />}
-      />
+      <div className="max-w-7xl mx-auto">
+        <BentoGrid className="lg:grid-rows-3">
+          {features.map((feature) => (
+            <BentoCard key={feature.name} {...feature} />
+          ))}
+        </BentoGrid>
+      </div>
     </div>
   );
 }

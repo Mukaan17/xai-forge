@@ -3,9 +3,22 @@ import { apiClient } from '@/shared/lib/api/client';
 export interface UserDto {
   id: number;
   username: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  organization?: string;
+  role?: string;
+  twoFactorEnabled: boolean;
+}
+
+export interface ProfileDto {
+  id: number;
+  username: string;
   email: string;
   firstName?: string;
   lastName?: string;
+  organization?: string;
+  role?: string;
   twoFactorEnabled: boolean;
 }
 
@@ -29,8 +42,12 @@ export interface UpdatePreferencesRequest {
 }
 
 export const settingsApi = {
-  updateProfile: async (data: UpdateProfileRequest): Promise<UserDto> => {
-    return apiClient.put<UserDto>('/v1/auth/profile', data);
+  getProfile: async (): Promise<ProfileDto> => {
+    return apiClient.get<ProfileDto>('/v1/auth/profile');
+  },
+
+  updateProfile: async (data: UpdateProfileRequest): Promise<ProfileDto> => {
+    return apiClient.put<ProfileDto>('/v1/auth/profile', data);
   },
 
   changePassword: async (data: ChangePasswordRequest): Promise<{ message: string }> => {

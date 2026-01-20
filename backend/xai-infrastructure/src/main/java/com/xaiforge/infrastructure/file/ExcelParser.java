@@ -1,6 +1,7 @@
 package com.xaiforge.infrastructure.file;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -15,8 +16,9 @@ import java.util.List;
  * Service for parsing Excel files (.xlsx, .xls) and converting to CSV-like data.
  */
 @Component
-@Slf4j
+
 public class ExcelParser {
+    private static final Logger log = LoggerFactory.getLogger(ExcelParser.class);
     
     /**
      * Parse Excel file and extract headers and row count.

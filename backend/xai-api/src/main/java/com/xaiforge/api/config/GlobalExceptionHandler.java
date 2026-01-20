@@ -141,6 +141,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem);
     }
     
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<ProblemDetail> handleNullPointerException(
+            NullPointerException ex, WebRequest request) {
+        
+        // Check if this is the Spring Security authentication null pointer
+        String message = ex.getMessage();
+        if (message != null && message.contains("Authentication.getPrincipal()")) {
+            log.warn("Spring Security authentication access error on public endpoint: {}", request.getDescription(false));
+            // Return a more user-friendly error
+            ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "An error occurred during registration. Please try again.");
+            problem.setType(URI.create("/errors/internal-error"));
+            problem.setProperty("correlationId", MDC.get("correlationId"));
+            problem.setProperty("timestamp", Instant.now());
+            problem.setProperty("errorCode", ErrorCode.INTERNAL_ERROR.getCode());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
+        }
+        
+        // For other null pointer exceptions, log and handle normally
+        log.error("NullPointerException: {}", ex.getMessage(), ex);
+        return handleUnexpectedException(ex, request);
+    }
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleUnexpectedException(
             Exception ex, WebRequest request) {

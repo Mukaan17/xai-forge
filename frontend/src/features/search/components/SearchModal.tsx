@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Search, Database, BrainCircuit, Target, X, Loader2 } from 'lucide-react';
+import { Search, Database, BrainCircuit, Target, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent } from '@/shared/components/ui/dialog';
-import { Input } from '@/shared/components/ui/input';
+import PromptInputDynamicGrow from '@/shared/components/ui/prompt-input-dynamic-grow';
 import { searchApi, SearchResult } from '../api/searchApi';
 import { cn } from '@/lib/utils';
 
@@ -16,7 +16,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const navigate = useNavigate();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: results, isLoading } = useQuery({
     queryKey: ['search', query],
@@ -48,17 +48,36 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
     : [];
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
+    // If there are results, handle navigation
+    if (allResults.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((prev) => Math.min(prev + 1, allResults.length - 1));
+        return;
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex((prev) => Math.max(prev - 1, 0));
+        return;
+      } else if (e.key === 'Enter' && allResults[selectedIndex]) {
+        e.preventDefault();
+        handleSelect(allResults[selectedIndex]);
+        return;
+      }
+    }
+    // Escape always closes
+    if (e.key === 'Escape') {
       e.preventDefault();
-      setSelectedIndex((prev) => Math.min(prev + 1, allResults.length - 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex((prev) => Math.max(prev - 1, 0));
-    } else if (e.key === 'Enter' && allResults[selectedIndex]) {
-      e.preventDefault();
-      handleSelect(allResults[selectedIndex]);
-    } else if (e.key === 'Escape') {
       onOpenChange(false);
+    }
+  };
+
+  const handleSubmit = (value: string) => {
+    // If there are results and one is selected, navigate to it
+    if (allResults.length > 0 && allResults[selectedIndex]) {
+      handleSelect(allResults[selectedIndex]);
+    } else if (value.trim()) {
+      // Otherwise, just update the query to trigger search
+      setQuery(value.trim());
     }
   };
 
@@ -96,25 +115,21 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] p-0 gap-0">
-        <div className="flex items-center border-b border-border px-4">
-          <Search className="w-4 h-4 text-muted-foreground mr-2" />
-          <Input
-            ref={inputRef}
+        <div className="px-4 pt-4 pb-2 border-b border-border">
+          <PromptInputDynamicGrow
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={setQuery}
+            onSubmit={handleSubmit}
             onKeyDown={handleKeyDown}
             placeholder="Search datasets, models, predictions..."
-            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-14 text-base"
-            autoFocus
+            inputRef={inputRef}
+            showEffects={true}
+            glowIntensity={0.5}
+            backgroundOpacity={0.2}
+            expandOnFocus={false}
+            menuOptions={[]}
+            disabled={false}
           />
-          {query && (
-            <button
-              onClick={() => setQuery('')}
-              className="ml-2 p-1 hover:bg-muted rounded"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
         </div>
 
         <div className="max-h-[400px] overflow-y-auto">

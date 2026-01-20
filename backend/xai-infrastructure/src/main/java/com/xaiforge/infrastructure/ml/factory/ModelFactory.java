@@ -5,7 +5,8 @@ import com.xaiforge.infrastructure.ml.strategy.ClassificationStrategy;
 import com.xaiforge.infrastructure.ml.strategy.RegressionStrategy;
 import com.xaiforge.infrastructure.ml.strategy.TrainingStrategy;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.tribuo.MutableDataset;
 import org.tribuo.Model;
@@ -22,11 +23,8 @@ import java.util.Map;
  * @since 1.0.0
  */
 @Component
-@Slf4j
 public class ModelFactory {
-    
-    // Manual log field (Lombok @Slf4j not generating it)
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ModelFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(ModelFactory.class);
     
     private final ClassificationStrategy classificationStrategy;
     private final RegressionStrategy regressionStrategy;

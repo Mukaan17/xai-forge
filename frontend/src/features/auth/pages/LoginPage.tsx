@@ -46,6 +46,10 @@ export function LoginPage() {
   const [registerUsername, setRegisterUsername] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
+  const [registerFirstName, setRegisterFirstName] = useState('');
+  const [registerLastName, setRegisterLastName] = useState('');
+  const [registerOrganization, setRegisterOrganization] = useState('');
+  const [registerRole, setRegisterRole] = useState('');
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [isRegisterTyping, setIsRegisterTyping] = useState(false);
 
@@ -135,7 +139,15 @@ export function LoginPage() {
       registerPassword,
     });
     if (!isValid) return;
-    register({ username: registerUsername, email: registerEmail, password: registerPassword });
+    register({ 
+      username: registerUsername, 
+      email: registerEmail, 
+      password: registerPassword,
+      firstName: registerFirstName,
+      lastName: registerLastName,
+      organization: registerOrganization.trim() || undefined,
+      role: registerRole.trim() || undefined
+    });
   };
 
   const handleBackToLogin = () => {
@@ -286,7 +298,7 @@ export function LoginPage() {
             sessionStorage.setItem('xai-forge-closing-from-path', location.pathname);
             navigate('/');
           }}
-          className="p-2 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 group-hover:bg-background group-hover:border-border transition-all duration-300"
+          className="w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 group-hover:bg-background group-hover:border-border transition-all duration-300 flex items-center justify-center p-0"
           aria-label="Close"
         >
           <X className="size-5 text-foreground group-hover:text-red-500 group-hover:rotate-90 transition-all duration-300" />
@@ -523,6 +535,42 @@ export function LoginPage() {
                   />
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="register-firstName" className="text-sm font-medium">First Name</Label>
+                    <Input
+                      id="register-firstName"
+                      type="text"
+                      placeholder="John"
+                      value={registerFirstName}
+                      autoComplete="given-name"
+                      onChange={(e) => setRegisterFirstName(e.target.value)}
+                      onFocus={() => setIsRegisterTyping(true)}
+                      onBlur={() => setIsRegisterTyping(false)}
+                      required
+                      disabled={isLoading}
+                      className="h-12 bg-background border-border/60 focus:border-primary"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="register-lastName" className="text-sm font-medium">Last Name</Label>
+                    <Input
+                      id="register-lastName"
+                      type="text"
+                      placeholder="Doe"
+                      value={registerLastName}
+                      autoComplete="family-name"
+                      onChange={(e) => setRegisterLastName(e.target.value)}
+                      onFocus={() => setIsRegisterTyping(true)}
+                      onBlur={() => setIsRegisterTyping(false)}
+                      required
+                      disabled={isLoading}
+                      className="h-12 bg-background border-border/60 focus:border-primary"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="register-email" className="text-sm font-medium">Email</Label>
                   <Input
@@ -530,7 +578,7 @@ export function LoginPage() {
                     type="email"
                     placeholder="anna@gmail.com"
                     value={registerEmail}
-                    autoComplete="off"
+                    autoComplete="email"
                     onChange={(e) => setRegisterEmail(e.target.value)}
                     onFocus={() => setIsRegisterTyping(true)}
                     onBlur={() => setIsRegisterTyping(false)}
@@ -538,6 +586,44 @@ export function LoginPage() {
                     disabled={isLoading}
                     className="h-12 bg-background border-border/60 focus:border-primary"
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="register-organization" className="text-sm font-medium">
+                      Company <span className="text-muted-foreground text-xs font-normal">(Optional)</span>
+                    </Label>
+                    <Input
+                      id="register-organization"
+                      type="text"
+                      placeholder="Acme Corp"
+                      value={registerOrganization}
+                      autoComplete="organization"
+                      onChange={(e) => setRegisterOrganization(e.target.value)}
+                      onFocus={() => setIsRegisterTyping(true)}
+                      onBlur={() => setIsRegisterTyping(false)}
+                      disabled={isLoading}
+                      className="h-12 bg-background border-border/60 focus:border-primary"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="register-role" className="text-sm font-medium">
+                      Role <span className="text-muted-foreground text-xs font-normal">(Optional)</span>
+                    </Label>
+                    <Input
+                      id="register-role"
+                      type="text"
+                      placeholder="Software Engineer"
+                      value={registerRole}
+                      autoComplete="organization-title"
+                      onChange={(e) => setRegisterRole(e.target.value)}
+                      onFocus={() => setIsRegisterTyping(true)}
+                      onBlur={() => setIsRegisterTyping(false)}
+                      disabled={isLoading}
+                      className="h-12 bg-background border-border/60 focus:border-primary"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">

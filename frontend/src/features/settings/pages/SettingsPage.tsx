@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Shield, Bell, Palette, Plug, Database, Download, AlertTriangle, Laptop, Smartphone, Monitor, Sun, Moon, Check, Copy, Plus, LogOut, Trash2 } from 'lucide-react';
+import { User, Shield, Bell, Palette, Plug, Database, Download, AlertTriangle, Smartphone, Monitor, Laptop, Check, Copy, Plus, LogOut, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -17,7 +17,7 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { settingsApi } from '../api/settingsApi';
 import { sessionsApi, SessionDto } from '../api/sessionsApi';
 import { toast } from '@/shared/lib/toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { DataExportSection } from '@/features/export/components/DataExportSection';
 
@@ -25,17 +25,29 @@ export function SettingsPage() {
   const { user, logout } = useAuth();
   const { updateUser } = useAuthStore();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   
-  const [selectedTab, setSelectedTab] = useState('profile');
+  const selectedTab = searchParams.get('tab') || 'profile';
+  const setSelectedTab = (tab: string) => {
+    setSearchParams({ tab });
+  };
+  
+  // Ensure tab param is set when navigating to settings
+  useEffect(() => {
+    if (!searchParams.get('tab')) {
+      setSearchParams({ tab: 'profile' }, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+  
   const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   // Profile form state
   const [profile, setProfile] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
+    firstName: '',
+    lastName: '',
+    email: '',
     organization: '',
     role: '',
   });
@@ -58,8 +70,8 @@ export function SettingsPage() {
     tips: { email: false, inApp: true, push: false },
   });
   
-  // Theme management
-  const { theme, accentColor, setTheme, setAccentColor, isLoading: isSavingTheme } = useTheme();
+  // Accent color management (theme switching removed - always dark)
+  const { accentColor, setAccentColor } = useTheme();
   
   // API Keys state (placeholder for now)
   const [apiKeys] = useState([
@@ -116,8 +128,38 @@ export function SettingsPage() {
     return <Laptop className="w-5 h-5" />;
   };
   
+  // Fetch profile data on mount and when user changes
   useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) {
+        return; // Don't try to load if user is not available
+      }
+      
+      try {
+        console.log('Loading profile data for user:', user.id);
+        const profileData = await settingsApi.getProfile();
+        console.log('Profile data received:', profileData);
+        
+        if (profileData) {
+          setProfile({
+            firstName: profileData.firstName || '',
+            lastName: profileData.lastName || '',
+            email: profileData.email || user.email || '',
+            organization: profileData.organization || '',
+            role: profileData.role || '',
+          });
+        }
+      } catch (error: any) {
+        console.error('Failed to load profile:', error);
+        console.error('Error details:', {
+          message: error?.message,
+          status: error?.status,
+          response: error?.response
+        });
+        
+        // Fallback to user data if profile fetch fails
     if (user) {
+          console.log('Using fallback user data:', user);
       setProfile({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -126,23 +168,70 @@ export function SettingsPage() {
         role: '',
       });
     }
+      }
+    };
+    
+    loadProfile();
   }, [user]);
 
   const handleSaveProfile = async () => {
     setIsLoading(true);
     try {
-      const updatedUser = await settingsApi.updateProfile({
+      console.log('Saving profile with data:', {
         firstName: profile.firstName,
         lastName: profile.lastName,
         email: profile.email,
         organization: profile.organization,
         role: profile.role,
       });
-      updateUser(updatedUser);
+      
+      const updatedProfile = await settingsApi.updateProfile({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        email: profile.email,
+        organization: profile.organization,
+        role: profile.role,
+      });
+      
+      console.log('Profile update response:', updatedProfile);
+      
+      // Update the profile state with the response
+      setProfile({
+        firstName: updatedProfile.firstName || '',
+        lastName: updatedProfile.lastName || '',
+        email: updatedProfile.email || '',
+        organization: updatedProfile.organization || '',
+        role: updatedProfile.role || '',
+      });
+      
+      // Also update the user in the auth store
+      updateUser({
+        firstName: updatedProfile.firstName,
+        lastName: updatedProfile.lastName,
+        email: updatedProfile.email,
+      });
+      
+      // Reload profile data to ensure we have the latest
+      const refreshedProfile = await settingsApi.getProfile();
+      console.log('Refreshed profile after update:', refreshedProfile);
+      setProfile({
+        firstName: refreshedProfile.firstName || '',
+        lastName: refreshedProfile.lastName || '',
+        email: refreshedProfile.email || '',
+        organization: refreshedProfile.organization || '',
+        role: refreshedProfile.role || '',
+      });
+      
       toast.success('Profile updated', {
         description: 'Your profile information has been saved',
       });
     } catch (error: any) {
+      console.error('Failed to update profile:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        status: error?.status,
+        response: error?.response
+      });
       toast.error('Failed to update profile', {
         description: error?.message || 'Please try again',
       });
@@ -274,6 +363,19 @@ export function SettingsPage() {
     toast.success('Copied to clipboard');
   };
 
+  // Show loading state if user data is not yet available
+  if (!user) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-muted-foreground">Loading settings...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-4 sm:mb-6">
@@ -282,36 +384,6 @@ export function SettingsPage() {
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4 sm:space-y-6">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 w-full gap-2 sm:gap-0 overflow-x-auto">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
-            <User className="w-4 h-4" />
-            Profile
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="w-4 h-4" />
-            Security
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="w-4 h-4" />
-            Notifications
-          </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2">
-            <Palette className="w-4 h-4" />
-            Appearance
-          </TabsTrigger>
-          <TabsTrigger value="api" className="flex items-center gap-2">
-            <Plug className="w-4 h-4" />
-            API
-          </TabsTrigger>
-          <TabsTrigger value="data" className="flex items-center gap-2">
-            <Database className="w-4 h-4" />
-            Data
-          </TabsTrigger>
-          <TabsTrigger value="danger" className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" />
-            Danger Zone
-          </TabsTrigger>
-        </TabsList>
 
         {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-6">
@@ -605,33 +677,6 @@ export function SettingsPage() {
         {/* Appearance Tab */}
         <TabsContent value="appearance" className="space-y-6">
           <Card className="p-6">
-            <h3 className="mb-6">Theme</h3>
-            <RadioGroup 
-              value={theme} 
-              onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')} 
-              className="grid grid-cols-3 gap-4"
-              disabled={isSavingTheme}
-            >
-              {[
-                { id: 'dark', label: 'Dark Mode', icon: Moon },
-                { id: 'light', label: 'Light Mode', icon: Sun },
-                { id: 'system', label: 'System', icon: Laptop },
-              ].map((themeOption) => (
-                <label key={themeOption.id} className="cursor-pointer">
-                  <RadioGroupItem value={themeOption.id} className="sr-only" />
-                  <div className={`border-2 rounded-lg p-4 hover:border-primary/50 transition-colors ${
-                    theme === themeOption.id ? 'border-primary' : 'border-border'
-                  }`}>
-                    <themeOption.icon className="w-6 h-6 mb-3" />
-                    <p className="font-medium">{themeOption.label}</p>
-                    <div className="mt-3 h-20 rounded border border-border bg-gradient-to-b from-muted to-background"></div>
-                  </div>
-                </label>
-              ))}
-            </RadioGroup>
-          </Card>
-
-          <Card className="p-6">
             <h3 className="mb-6">Accent Color</h3>
             <p className="text-muted-foreground mb-4">
               Choose your preferred accent color for buttons and highlights.
@@ -647,7 +692,6 @@ export function SettingsPage() {
                 <button
                   key={color.id}
                   onClick={() => setAccentColor(color.color)}
-                  disabled={isSavingTheme}
                   className={`w-12 h-12 rounded-full border-2 hover:scale-110 transition-transform ${
                     accentColor === color.color ? 'border-white ring-2 ring-offset-2' : 'border-border'
                   }`}
@@ -802,6 +846,17 @@ export function SettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Done Button */}
+      <div className="mt-8 pt-6 border-t border-border flex justify-end">
+        <Button
+          onClick={() => navigate('/dashboard')}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 px-8"
+          size="lg"
+        >
+          Done
+        </Button>
+      </div>
     </div>
   );
 }

@@ -98,14 +98,21 @@ function AppRoutes() {
   
   // Set navigation flag when user is on any page other than hero
   // This helps detect when user navigates back to hero from another page
+  // Set it synchronously to avoid race conditions
+  if (location.pathname !== '/') {
+    // User is on a page other than hero - set flag to indicate navigation happened
+    // This flag will be checked by hero component when navigating back
+    // Set it synchronously (not in useEffect) to ensure it's available immediately
+    sessionStorage.setItem('xai-forge-navigated-to-hero', 'true');
+  }
+  
+  // Also set it in useEffect as backup
   React.useEffect(() => {
     if (location.pathname !== '/') {
-      // User is on a page other than hero - set flag to indicate navigation happened
       sessionStorage.setItem('xai-forge-navigated-to-hero', 'true');
-    } else {
-      // User is on hero - don't clear the flag here, let hero component handle it
-      // This ensures the flag persists until hero component checks it
     }
+    // Don't clear the flag when on hero - let hero component handle it after it's checked
+    // This ensures smooth transitions when navigating back to hero
   }, [location.pathname]);
 
   // Check for back navigation and update animation direction
@@ -151,16 +158,39 @@ function AppRoutes() {
     previousPathnameRef.current = location.pathname;
   }, [location.pathname]);
   
+  // Read previous pathname BEFORE updating (to detect transitions)
+  const previousPathname = previousPathnameRef.current;
+  const currentPath = location.pathname;
+  const previousPath = previousPathname;
+  
+  // Check if transitioning between dashboard and settings (special case - should animate)
+  const isDashboardToSettings = previousPath === '/dashboard' && currentPath === '/settings';
+  const isSettingsToDashboard = previousPath === '/settings' && currentPath === '/dashboard';
+  const isDashboardSettingsTransition = isDashboardToSettings || isSettingsToDashboard;
+  
+  // Check if transitioning between hero and login/signup (special case - should animate)
+  const isHeroToLogin = previousPath === '/' && (currentPath === '/login' || currentPath === '/register');
+  const isLoginToHero = (previousPath === '/login' || previousPath === '/register') && currentPath === '/';
+  const isHeroLoginTransition = isHeroToLogin || isLoginToHero;
+  
   // Check if current and previous routes are both dashboard routes
-  // Use separate ref for animation check to avoid race conditions
-  const isDashboardRoute = isDashboardRoutePath(location.pathname);
-  const wasDashboardRoute = isDashboardRoutePath(previousPathForAnimationRef.current);
+  const isDashboardRoute = isDashboardRoutePath(currentPath);
+  const wasDashboardRoute = isDashboardRoutePath(previousPath);
   
   // Only animate if transitioning between different route types (public <-> dashboard)
-  // Don't animate when navigating within dashboard routes
-  const shouldAnimate = !(isDashboardRoute && wasDashboardRoute);
+  // OR if transitioning between dashboard and settings (special case)
+  // OR if transitioning between hero and login/signup (special case)
+  // Don't animate when navigating within other dashboard routes
+  const shouldAnimate = !(isDashboardRoute && wasDashboardRoute) || isDashboardSettingsTransition || isHeroLoginTransition;
   
-  // Update the animation ref after determining if we should animate
+  // Update previous pathname ref AFTER we've used it (for next render)
+  React.useEffect(() => {
+    if (location.pathname !== previousPathnameRef.current) {
+      previousPathnameRef.current = location.pathname;
+    }
+  }, [location.pathname]);
+  
+  // Also update the other ref for compatibility with existing code
   React.useEffect(() => {
     previousPathForAnimationRef.current = location.pathname;
   }, [location.pathname]);
@@ -175,49 +205,45 @@ function AppRoutes() {
     const isCurrentlyOnLoginOrSignup = location.pathname === '/login' || location.pathname === '/register';
     const isCurrentlyOnHero = location.pathname === '/';
     
+    // Hero <-> Login/Signup transitions (check this first, before general login/signup logic)
+    const heroPrevPath = previousPathname;
+    const isHeroToLogin = heroPrevPath === '/' && (location.pathname === '/login' || location.pathname === '/register');
+    const isLoginToHero = (heroPrevPath === '/login' || heroPrevPath === '/register') && location.pathname === '/';
+    
+    // When navigating FROM hero TO login/signup
+    if (isHeroToLogin) {
+      // Login/signup enters from right, hero exits left (handled by hero's exitX when it was the current component)
+      return {
+        initialX: 100,  // Login/signup enters from right
+        exitX: 100      // Login/signup will exit to right (when navigating back to hero)
+      };
+    }
+    
+    // When navigating FROM login/signup TO hero
+    if (isLoginToHero) {
+      // Hero enters from left (opposite of login/signup exit), login/signup exits right (handled when it was current)
+      return {
+        initialX: -100, // Hero enters from left
+        exitX: -100     // Hero will exit to left (when navigating to login/signup)
+      };
+    }
+    
     // Login/signup pages: always enter and exit from/to right
     if (isCurrentlyOnLoginOrSignup) {
       return {
         initialX: 100,  // Always enter from right
-        exitX: 100       // Always exit to right
+        exitX: 100      // Always exit to right (when navigating to hero)
       };
     }
     
-    // Hero page: when closing from login/signup, enter from left
-    if (isCurrentlyOnHero && isClosingToHero && isLoginOrSignup) {
-      return {
-        initialX: -100,  // Enter from left (opposite of login/signup exit)
-        exitX: -animationDirection
-      };
-    }
-    
-    // When on hero, always exit left when navigating to login/signup
-    // This ensures consistent behavior: hero exits left, login/signup enters from right
+    // When currently on hero (not in a transition)
     if (isCurrentlyOnHero) {
-      // Check if we just arrived at hero from login/signup (closing case)
-      // In that case, we already handled the entry animation above (enters from left)
-      const previousPath = previousPathnameRef.current;
-      const justArrivedFromLoginOrSignup = isClosingToHero && 
-                                          isLoginOrSignup && 
-                                          (previousPath === '/login' || previousPath === '/register');
-      
-      if (justArrivedFromLoginOrSignup) {
-        // We just arrived from login/signup - use the entry animation set above
-        // But still set exit left for future navigations
-        return {
-          initialX: -100,  // Enter from left (already handled above)
-          exitX: -100  // Exit left for next navigation to login/signup
-        };
-      }
-      
-      // For ALL cases on hero (initial load, normal navigation to login/signup, etc.)
-      // Hero should ALWAYS exit left - this is the default behavior
-      // This ensures consistency: hero always exits left, login/signup always enter from right
-      // Store in ref so it persists across location changes
+      // Hero should ALWAYS exit left when navigating to login/signup
+      // This ensures consistency: hero exits left, login/signup enters from right
       heroExitXRef.current = -100;
       return {
         initialX: animationDirection,
-        exitX: heroExitXRef.current  // ALWAYS exit left when on hero (opposite of login/signup entry from right)
+        exitX: -100  // ALWAYS exit left when on hero (opposite of login/signup entry from right)
       };
     }
     
@@ -236,10 +262,47 @@ function AppRoutes() {
       }
     }
     
+    // Dashboard <-> Settings transitions (special handling)
+    // Use the previousPathname from the outer scope (captured before ref update)
+    const dashboardPrevPath = previousPathname;
+    const isDashboardToSettings = dashboardPrevPath === '/dashboard' && location.pathname === '/settings';
+    const isSettingsToDashboard = dashboardPrevPath === '/settings' && location.pathname === '/dashboard';
+    
+    // When we just navigated TO settings (from dashboard)
+    if (isDashboardToSettings) {
+      return {
+        initialX: 100,  // Settings enters from right
+        exitX: 100      // Settings will exit to right (when navigating away from settings)
+      };
+    }
+    
+    // When we just navigated TO dashboard (from settings)
+    if (isSettingsToDashboard) {
+      return {
+        initialX: -100, // Dashboard enters from left
+        exitX: -100    // Dashboard will exit to left (when navigating away from dashboard)
+      };
+    }
+    
+    // When currently on dashboard (not in a transition)
+    if (location.pathname === '/dashboard') {
+      return {
+        initialX: animationDirection,
+        exitX: -100  // Dashboard exits to left (when navigating to settings)
+      };
+    }
+    
+    // When currently on settings (not in a transition)
+    if (location.pathname === '/settings') {
+      return {
+        initialX: animationDirection,
+        exitX: 100  // Settings exits to right (when navigating to dashboard)
+      };
+    }
+    
     // Default: use animationDirection
     // But if we're coming from hero (previous path was '/'), default exit should be left
-    const previousPath = previousPathnameRef.current;
-    if (previousPath === '/') {
+    if (previousPathname === '/') {
       // Coming from hero - exit left by default
       return {
         initialX: animationDirection,
@@ -252,26 +315,52 @@ function AppRoutes() {
       initialX: animationDirection,
       exitX: -animationDirection
     };
-  }, [location.pathname, animationDirection]);
+  }, [location.pathname, animationDirection, previousPathname]);
+
 
   // Use location.key for reliable tracking - React Router provides unique keys for each navigation
-  const navigationKey = shouldAnimate ? (location.key || `${location.pathname}-${Date.now()}`) : 'dashboard-layout';
+  // For dashboard/settings and hero/login transitions, ensure the key changes to trigger animation
+  const navigationKey = React.useMemo(() => {
+    if (!shouldAnimate) return 'dashboard-layout';
+    // Always use location.key if available (React Router provides unique keys)
+    // This is the most reliable way to ensure unique keys for each navigation
+    if (location.key) {
+      return `route-${location.key}`;
+    }
+    // Fallback: create unique key based on pathname and previous pathname
+    // This ensures the key changes even when location.key is not available
+    if (isDashboardSettingsTransition || isHeroLoginTransition) {
+      return `${location.pathname}-from-${previousPathname}`;
+    }
+    // For all route changes, include previous pathname to ensure key uniqueness
+    if (previousPathname !== location.pathname) {
+      return `${location.pathname}-from-${previousPathname || 'initial'}`;
+    }
+    // Default: use pathname (shouldn't happen often, but fallback)
+    return location.pathname;
+  }, [shouldAnimate, isDashboardSettingsTransition, isHeroLoginTransition, location.pathname, location.key, previousPathname]);
   
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode="wait" onExitComplete={() => {}}>
       <motion.div
         key={navigationKey}
         initial={shouldAnimate ? { opacity: 0, x: animationValues.initialX } : false}
-        animate={shouldAnimate ? { opacity: 1, x: 0 } : { opacity: 1, x: 0 }}
+        animate={{ opacity: 1, x: 0 }}
         exit={shouldAnimate ? { opacity: 0, x: animationValues.exitX } : false}
-        transition={shouldAnimate ? { duration: 0.4, ease: [0.22, 1, 0.36, 1] } : { duration: 0 }}
+        transition={shouldAnimate ? { 
+          duration: 0.35, 
+          ease: [0.22, 1, 0.36, 1],
+          opacity: { duration: 0.3 }
+        } : { duration: 0 }}
         className="w-full"
         style={{ 
           backgroundColor: 'var(--color-background, #0f0f1a)',
-          minHeight: '100vh'
+          minHeight: '100vh',
+          willChange: shouldAnimate ? 'transform, opacity' : 'auto',
+          pointerEvents: 'auto'
         }}
       >
-        <Routes location={location}>
+        <Routes>
           <Route 
             path="/" 
             element={

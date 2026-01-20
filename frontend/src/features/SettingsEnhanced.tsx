@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, Shield, Bell, Palette, Plug, Database, Download, AlertTriangle, Laptop, Smartphone, Monitor, Sun, Moon, Eye, Copy, Plus, X, Trash2, Check } from 'lucide-react';
+import { User, Shield, Bell, Palette, Plug, Database, Download, AlertTriangle, Smartphone, Monitor, Eye, Copy, Plus, X, Trash2, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -12,10 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { useStore } from '../lib/store';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 export function SettingsEnhanced() {
-  const { theme, setTheme, accentColor, setAccentColor } = useStore();
+  const { accentColor, setAccentColor } = useStore();
   const [selectedTab, setSelectedTab] = useState('profile');
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
@@ -85,12 +85,6 @@ export function SettingsEnhanced() {
     });
   };
 
-  const handleThemeChange = (newTheme: 'dark' | 'light' | 'system') => {
-    setTheme(newTheme);
-    toast.success('Theme updated', {
-      description: `Switched to ${newTheme} mode`,
-    });
-  };
 
   const handleAccentColorChange = (color: string) => {
     setAccentColor(color);
@@ -348,28 +342,6 @@ export function SettingsEnhanced() {
 
         {/* Appearance Tab */}
         <TabsContent value="appearance" className="space-y-6">
-          <Card className="p-6">
-            <h3 className="mb-6">Theme</h3>
-            <RadioGroup value={theme} onValueChange={(v: any) => handleThemeChange(v)} className="grid grid-cols-3 gap-4">
-              {[
-                { id: 'dark', label: 'Dark Mode', icon: Moon },
-                { id: 'light', label: 'Light Mode', icon: Sun },
-                { id: 'system', label: 'System', icon: Laptop },
-              ].map((themeOption) => (
-                <label key={themeOption.id} className="cursor-pointer">
-                  <RadioGroupItem value={themeOption.id} className="sr-only" />
-                  <div className={`border-2 rounded-lg p-4 hover:border-primary/50 transition-colors ${
-                    theme === themeOption.id ? 'border-primary' : 'border-border'
-                  }`}>
-                    <themeOption.icon className="w-6 h-6 mb-3" />
-                    <p className="font-medium">{themeOption.label}</p>
-                    <div className="mt-3 h-20 rounded border border-border bg-gradient-to-b from-muted to-background"></div>
-                  </div>
-                </label>
-              ))}
-            </RadioGroup>
-          </Card>
-
           <Card className="p-6">
             <h3 className="mb-6">Accent Color</h3>
             <p className="text-muted-foreground mb-4">

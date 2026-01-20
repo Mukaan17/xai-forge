@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FileSpreadsheet, Upload, Search, MoreVertical, Eye, Play, Trash2, Grid3x3, List, CloudUpload, CheckCircle2, X } from 'lucide-react';
+import { FileSpreadsheet, Upload, Search, Eye, Play, Trash2, Grid3x3, List, CloudUpload, CheckCircle2, X, Edit2, Download } from 'lucide-react';
+import { DropdownMenuAction } from '@/shared/components/ui/dropdown-menu-action';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
@@ -176,9 +177,29 @@ export function Datasets({ onNavigate }: DatasetsProps) {
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
                   <FileSpreadsheet className="w-6 h-6 text-primary" />
                 </div>
-                <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
+                <DropdownMenuAction
+                  options={[
+                    {
+                      label: "Edit",
+                      onClick: () => console.log("Edit dataset", dataset.name),
+                      Icon: Edit2,
+                    },
+                    {
+                      label: "Download",
+                      onClick: () => console.log("Download dataset", dataset.name),
+                      Icon: Download,
+                    },
+                    {
+                      label: "Delete",
+                      onClick: () => console.log("Delete dataset", dataset.name),
+                      Icon: Trash2,
+                      variant: "destructive",
+                    },
+                  ]}
+                  align="right"
+                  variant="icon"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                />
               </div>
               <h4 className="mb-2 truncate">{dataset.name}</h4>
               <p className="text-sm text-muted-foreground mb-4">

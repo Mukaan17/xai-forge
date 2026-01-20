@@ -1,6 +1,7 @@
 package com.xaiforge.infrastructure.ml.strategy;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.tribuo.MutableDataset;
 import org.tribuo.Model;
@@ -21,8 +22,8 @@ import java.util.Map;
  * @since 1.0.0
  */
 @Component
-@Slf4j
 public class SVMClassificationStrategy implements TrainingStrategy {
+    private static final Logger log = LoggerFactory.getLogger(SVMClassificationStrategy.class);
 
     @Override
     public Model<?> train(MutableDataset<?> dataset, Map<String, Object> parameters) throws Exception {

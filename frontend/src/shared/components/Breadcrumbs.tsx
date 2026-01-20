@@ -1,10 +1,19 @@
+import * as React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronRight, Home } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Home } from 'lucide-react';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/shared/components/ui/breadcrumb';
 
-interface BreadcrumbItem {
+interface BreadcrumbItemData {
   label: string;
   path: string;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
 export function Breadcrumbs() {
@@ -12,8 +21,8 @@ export function Breadcrumbs() {
   const pathnames = location.pathname.split('/').filter((x) => x);
 
   // Build breadcrumb items
-  const breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Dashboard', path: '/dashboard' },
+  const breadcrumbs: BreadcrumbItemData[] = [
+    { label: 'Dashboard', path: '/dashboard', icon: Home },
   ];
 
   // Add path segments
@@ -69,32 +78,31 @@ export function Breadcrumbs() {
   }
 
   return (
-    <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-4" aria-label="Breadcrumb">
-      <Link
-        to="/dashboard"
-        className="hover:text-foreground transition-colors flex items-center gap-1"
-      >
-        <Home className="w-4 h-4" />
-        <span className="sr-only">Home</span>
-      </Link>
-      {breadcrumbs.map((crumb, index) => {
-        const isLast = index === breadcrumbs.length - 1;
-        return (
-          <div key={crumb.path} className="flex items-center gap-2">
-            <ChevronRight className="w-4 h-4" />
-            {isLast ? (
-              <span className="text-foreground font-medium">{crumb.label}</span>
-            ) : (
-              <Link
-                to={crumb.path}
-                className="hover:text-foreground transition-colors"
-              >
-                {crumb.label}
-              </Link>
-            )}
-          </div>
-        );
-      })}
-    </nav>
+    <Breadcrumb>
+      <BreadcrumbList>
+        {breadcrumbs.map((crumb, index) => {
+          const isLast = index === breadcrumbs.length - 1;
+          const Icon = crumb.icon;
+
+          return (
+            <React.Fragment key={crumb.path}>
+              <BreadcrumbItem>
+                {isLast ? (
+                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link to={crumb.path} className="inline-flex items-center gap-1.5">
+                      {Icon && <Icon className="w-4 h-4" aria-hidden="true" />}
+                      {crumb.label}
+                    </Link>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+              {!isLast && <BreadcrumbSeparator />}
+            </React.Fragment>
+          );
+        })}
+      </BreadcrumbList>
+    </Breadcrumb>
   );
 }

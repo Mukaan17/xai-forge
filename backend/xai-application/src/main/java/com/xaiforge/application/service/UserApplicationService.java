@@ -81,22 +81,28 @@ public class UserApplicationService {
                 return newProfile;
             });
         
+        // Update profile fields - allow empty strings to clear fields
         if (request.firstName() != null) {
-            profile.setFirstName(request.firstName());
+            profile.setFirstName(request.firstName().trim().isEmpty() ? null : request.firstName().trim());
         }
         if (request.lastName() != null) {
-            profile.setLastName(request.lastName());
+            profile.setLastName(request.lastName().trim().isEmpty() ? null : request.lastName().trim());
         }
         if (request.organization() != null) {
-            profile.setOrganization(request.organization());
+            profile.setOrganization(request.organization().trim().isEmpty() ? null : request.organization().trim());
         }
         if (request.role() != null) {
-            profile.setRole(request.role());
+            profile.setRole(request.role().trim().isEmpty() ? null : request.role().trim());
         }
+        
+        log.debug("Updating profile for user {}: firstName={}, lastName={}, organization={}, role={}", 
+            userId, profile.getFirstName(), profile.getLastName(), profile.getOrganization(), profile.getRole());
         
         profileRepository.save(profile);
         user.setProfile(profile);
         userRepository.save(user);
+        
+        log.debug("Profile updated successfully for user {}", userId);
     }
     
     @Transactional

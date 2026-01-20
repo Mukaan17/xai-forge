@@ -1,6 +1,7 @@
 package com.xaiforge.infrastructure.ml.strategy;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.tribuo.MutableDataset;
 import org.tribuo.Model;
@@ -18,8 +19,8 @@ import java.util.Map;
  * @since 1.0.0
  */
 @Component
-@Slf4j
 public class ClassificationStrategy implements TrainingStrategy {
+    private static final Logger log = LoggerFactory.getLogger(ClassificationStrategy.class);
 
     // Flag to control normalization (revertable)
     private static final boolean USE_NORMALIZATION = true;

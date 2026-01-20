@@ -1,6 +1,7 @@
 package com.xaiforge.infrastructure.ml.util;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
@@ -22,8 +23,8 @@ import java.util.Map;
  * @since 1.0.0
  */
 @Component
-@Slf4j
 public class ModelMetricsCalculator {
+    private static final Logger log = LoggerFactory.getLogger(ModelMetricsCalculator.class);
     
     /**
      * Result containing all calculated metrics
